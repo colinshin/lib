@@ -42,7 +42,7 @@ func TestStreamDecode(t *testing.T) {
 	var o = map[string]interface{}{}
 	var r = strings.NewReader(`{"a":"b"}{"1":"2"}`)
 	var dec = decoder.NewStreamDecoder(r)
-	dec.Decode(&o)
-	dec.Decode(&o)
+	_ = dec.Decode(&o)
+	_ = dec.Decode(&o)
 	t.Logf("%+v", o)
 }
