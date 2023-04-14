@@ -2,7 +2,10 @@ module CH123/Lib
 
 go 1.20
 
-require github.com/bytedance/sonic v1.8.7
+require (
+	github.com/bytedance/sonic v1.8.7
+	gopkg.in/yaml.v3 v3.0.1
+)
 
 require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
