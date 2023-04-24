@@ -1,4 +1,4 @@
-module CH123/Lib
+module github.com/flyerxp/lib
 
 go 1.20
 

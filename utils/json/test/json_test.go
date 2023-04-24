@@ -1,10 +1,10 @@
 package json
 
 import (
-	json2 "CH123/Lib/utils/json"
 	"bytes"
 	"encoding/json"
 	"github.com/bytedance/sonic/decoder"
+	json2 "github.com/flyerxp/lib/utils/json"
 	"strings"
 	"testing"
 )
