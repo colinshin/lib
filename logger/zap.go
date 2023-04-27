@@ -16,14 +16,14 @@ func EncoderConfig() zapcore.EncoderConfig {
 		FunctionKey:    "func",
 		StacktraceKey:  "stacktrace",
 		LineEnding:     "\n",
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeTime:     zapcore.TimeEncoderOfLayout("2006/01/02 15:04:05.000Z0700"),
 		EncodeLevel:    zapcore.CapitalLevelEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 }
-func GetWriteSyncer(file string) zapcore.WriteSyncer {
-	lumberJackLogger := &lumberjack.Logger{
+func GetWriteSyncer(file string) *lumberjack.Logger {
+	return &lumberjack.Logger{
 		Filename:   file,
 		MaxSize:    50,
 		MaxBackups: 10,
@@ -31,5 +31,4 @@ func GetWriteSyncer(file string) zapcore.WriteSyncer {
 		Compress:   true,
 		LocalTime:  true,
 	}
-	return zapcore.AddSync(lumberJackLogger)
 }
