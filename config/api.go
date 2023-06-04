@@ -3,7 +3,9 @@ package config
 import (
 	"github.com/flyerxp/globalStruct/config"
 	"github.com/flyerxp/lib/utils/env"
+	"github.com/flyerxp/lib/utils/json"
 	yaml "github.com/flyerxp/lib/utils/yaml"
+	_ "go.uber.org/zap/zapcore"
 	"log"
 	"path/filepath"
 	"sync"
@@ -15,26 +17,45 @@ var (
 	once   sync.Once
 )
 
+type zapConfig struct {
+	Level            string            `yaml:"level" json:"level"`
+	Encoding         string            `yaml:"encoding" json:"encoding"`
+	OutputPaths      []string          `yaml:"outputPaths" json:"outputPaths"`
+	ErrorOutputPaths []string          `yaml:"errorOutputPaths" json:"errorOutputPaths"`
+	InitialFields    map[string]string `yaml:"initialFields" json:"initialFields"`
+	EncoderConfig    map[string]string `yaml:"encoderConfig" json:"encoderConfig"`
+}
 type Config struct {
-	Env string
+	Env string `yaml:"env" json:"env"`
 	App struct {
-		Name        string `yaml:"name" json:"name"`
-		Type        string `yaml:"type" json:"type"`
-		Logger      string `yaml:"logger" json:"logger"`
-		ConfStorage bool   `yaml:"confStorage" json:"confStorage"`
+		Name        string    `yaml:"name" json:"name"`
+		Type        string    `yaml:"type" json:"type"`
+		Logger      zapConfig `yaml:"logger" json:"logger"`
+		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
-	Hertz  config.Hertz      `yaml:"hertz" json:"hertz"`
-	Redis  config.RedisConf  `yaml:"redis" json:"redis"`
-	Mysql  config.MysqlConf  `yaml:"mysql" json:"mysql"`
-	Pulsar config.PulsarConf `yaml:"pulsar" json:"pulsar"`
+	Hertz  config.Hertz        `yaml:"hertz" json:"hertz"`
+	Redis  []config.RedisConf  `yaml:"redis" json:"redis"`
+	Mysql  []config.MysqlConf  `yaml:"mysql" json:"mysql"`
+	Pulsar []config.PulsarConf `yaml:"pulsar" json:"pulsar"`
 }
 
-// GetConf gets configuration instance
+func (c *Config) String() string {
+	b, e := json.Encode(c)
+	if e != nil {
+		log.Fatalf("config josn error %s", e)
+	}
+	return string(b)
+}
+
 func GetConf() *Config {
 	once.Do(initConf)
 	return conf
 }
-func (c *Config) getRedisConf(name string) {
+
+// func (a *Config) getLoggerConf() zap.Config {
+// return a.App.Logger
+// }
+func (a *Config) getRedisConf(name string) {
 	/*if c.Redis == nil {
 		err := yaml.DecodeByFile(filepath.Join(prefix, filepath.Join(env.GetEnv(), "redis.yml")), config)
 		if err != nil {
@@ -44,10 +65,9 @@ func (c *Config) getRedisConf(name string) {
 }
 
 func initConf() {
-	config := new(Config)
-	err := yaml.DecodeByFile(filepath.Join(prefix, filepath.Join(env.GetEnv(), "conf.yml")), config)
+	conf = new(Config)
+	err := yaml.DecodeByFile(filepath.Join(prefix, filepath.Join(env.GetEnv(), "app.yml")), conf)
 	if err != nil {
 		log.Printf("default conf no find %v", err)
 	}
-	conf.Env = env.GetEnv()
 }
