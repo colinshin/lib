@@ -31,6 +31,7 @@ type Config struct {
 		Name        string    `yaml:"name" json:"name"`
 		Type        string    `yaml:"type" json:"type"`
 		Logger      zapConfig `yaml:"logger" json:"logger"`
+		ErrLog      zapConfig `yaml:"errlog" json:"errlog"`
 		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
 	Hertz  config.Hertz        `yaml:"hertz" json:"hertz"`
@@ -64,10 +65,60 @@ func (a *Config) getRedisConf(name string) {
 	}*/
 }
 
+var defaultConfig = []byte(`
+env: test
+app:
+  name: Webhook
+  type: web
+  logger:
+    level: debug
+    encoding: json
+    outputPaths:
+      - stdout
+      #- logs/webhook
+    errorOutputPaths:
+      - stderr
+    initialFields:
+      app: Webhook
+    encoderConfig:
+      #messageKey: msg
+      levelKey: level
+      nameKey: name
+      TimeKey: time
+      #CallerKey: caller
+      #FunctionKey: func
+      StacktraceKey: stacktrace
+      LineEnding: "\n"
+  errlog:
+    level: debug
+    encoding: json
+    outputPaths:
+      - stdout
+      #- logs/webhook
+    errorOutputPaths:
+      - stderr
+    initialFields:
+      app: Webhook
+    encoderConfig:
+      #messageKey: msg
+      levelKey: level
+      nameKey: name
+      TimeKey: time
+      CallerKey: caller
+      FunctionKey: func
+      StacktraceKey: stacktrace
+      LineEnding: "\n"
+`)
+
 func initConf() {
 	conf = new(Config)
 	err := yaml.DecodeByFile(filepath.Join(prefix, filepath.Join(env.GetEnv(), "app.yml")), conf)
 	if err != nil {
 		log.Printf("default conf no find %v", err)
+		log.Print("use default config")
+		err = yaml.DecodeByBytes(defaultConfig, conf)
+		if err != nil {
+			log.Printf("default config error", err)
+		}
 	}
 }

@@ -2,17 +2,22 @@ package logger
 
 import (
 	json2 "encoding/json"
-	"fmt"
 	"github.com/flyerxp/lib/app"
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/utils/json"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"log"
 	"sync"
 )
 
 // var libLog zap.Logger
 type AppLog struct {
+	ZapLog     *zap.Logger
+	once       sync.Once
+	LogMetrics logMetrics
+}
+type ErrLog struct {
 	ZapLog     *zap.Logger
 	once       sync.Once
 	LogMetrics logMetrics
@@ -97,13 +102,14 @@ func (r MiddleExecTime) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 }
 
 var libLog = new(AppLog)
+var errlog = new(ErrLog)
 
 func GetNoticeLog() {
 	libLog.once.Do(func() {
 		rawJSON, _ := json.Encode(config2.GetConf().App.Logger)
 		var cfg zap.Config
 		if err := json2.Unmarshal(rawJSON, &cfg); err != nil {
-			fmt.Print(err)
+			log.Print(err)
 		}
 		libLog.LogMetrics.Notice = append(libLog.LogMetrics.Notice, zap.Namespace("notice"))
 		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
@@ -116,7 +122,24 @@ func GetNoticeLog() {
 		})
 	})
 }
-
+func GetErrorLog() *zap.Logger {
+	errlog.once.Do(func() {
+		rawJSON, _ := json.Encode(config2.GetConf().App.ErrLog)
+		var cfg zap.Config
+		if err := json2.Unmarshal(rawJSON, &cfg); err != nil {
+			log.Print(err)
+		}
+		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
+		cfg.EncoderConfig.EncodeDuration = zapcore.StringDurationEncoder
+		cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
+		errlog.ZapLog = zap.Must(cfg.Build())
+		app.RegisterFunc("errlog", "errlog sync", func() {
+			errlog.ZapLog.Sync()
+		})
+	})
+	return errlog.ZapLog
+}
 func AddNotice(field ...zap.Field) {
 	libLog.LogMetrics.Notice = append(libLog.LogMetrics.Notice, field...)
 }
@@ -184,6 +207,7 @@ func AddMysqlTime(t int) {
 func setExecTime(t int) {
 	libLog.LogMetrics.TotalExecTime = t
 }
+
 func WriteLine() {
 	libLog.ZapLog.With(zap.Int("execTime", libLog.LogMetrics.TotalExecTime)).With(zap.Object("middle", libLog.LogMetrics.Middle)).With(libLog.LogMetrics.Notice...).Info("")
 	Reset()

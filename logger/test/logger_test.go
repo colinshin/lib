@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func aTestEncode(t *testing.T) {
+func TestEncode(t *testing.T) {
 	/*dynamicLevel := zap.NewAtomicLevel()
 	dynamicLevel.SetLevel(zap.DebugLevel)*/
 	l := hertzzap.NewLogger(
@@ -52,31 +52,10 @@ func getWriteSyncer(file string) zapcore.WriteSyncer {
 	}
 	return zapcore.AddSync(lumberJackLogger)
 }
-
-var libLog2 = new(logger.AppLog)
-
 func Test2Encode(t *testing.T) {
 	logger.GetNoticeLog()
-
 	logger.AddNotice(zap.Int("cccc", 1111))
 	logger.AddRedisTime(10)
 	logger.AddNotice(zap.String("cccc", "aaaaaaaaaaaaa"))
-	//cfg.InitialFields["notice"] = libLog2.LogMetrics.Notice
-	//cfg.InitialFields["execTime"] = libLog2.LogMetrics.TotalExecTime
-	//cfg.InitialFields["middle"] = libLog2.LogMetrics.Middle
-	/*cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
-	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
-	cfg.EncoderConfig.EncodeDuration = zapcore.StringDurationEncoder
-	cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
-	_, e := cfg.Build()
-	fmt.Printf("%#v", e)*/
-	logger.WriteLine()
-	//logger.WriteLine()
-	//logger.WriteLine()
-	//libLog2.ZapLog = zap.Must(cfg.Build())
-	//logger.AddRedisTime(10)
-	/*libLog2.ZapLog.With(zap.Namespace("notice"),
-	zap.Int("counter", 1)).With(zap.Namespace("notice"), zap.Int("bbbbbb", 1))*/
-	//libLog2.ZapLog.Info("execTime", zap.Int("execTime", 1))
-
+	logger.GetErrorLog().Info("error", zap.Int("aaaaa", 1))
 }
