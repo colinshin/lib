@@ -34,10 +34,11 @@ type Config struct {
 		ErrLog      zapConfig `yaml:"errlog" json:"errlog"`
 		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
-	Hertz  config.Hertz        `yaml:"hertz" json:"hertz"`
-	Redis  []config.RedisConf  `yaml:"redis" json:"redis"`
-	Mysql  []config.MysqlConf  `yaml:"mysql" json:"mysql"`
-	Pulsar []config.PulsarConf `yaml:"pulsar" json:"pulsar"`
+	Hertz  config.Hertz      `yaml:"hertz" json:"hertz"`
+	Redis  config.RedisConf  `yaml:"redis" json:"redis"`
+	Mysql  config.MysqlConf  `yaml:"mysql" json:"mysql"`
+	Pulsar config.PulsarConf `yaml:"pulsar" json:"pulsar"`
+	Nacos  []config.MidNacos `yaml:"nacos" json:"nacos"`
 }
 
 func (c *Config) String() string {
@@ -56,14 +57,14 @@ func GetConf() *Config {
 // func (a *Config) getLoggerConf() zap.Config {
 // return a.App.Logger
 // }
-func (a *Config) getRedisConf(name string) {
-	/*if c.Redis == nil {
+/*func (a *Config) getRedisConf(name string) {
+	if c.Redis == nil {
 		err := yaml.DecodeByFile(filepath.Join(prefix, filepath.Join(env.GetEnv(), "redis.yml")), config)
 		if err != nil {
 			//logger.Logger.
 		}
-	}*/
-}
+	}
+}*/
 
 var defaultConfig = []byte(`
 env: test
@@ -108,6 +109,20 @@ app:
       FunctionKey: func
       StacktraceKey: stacktrace
       LineEnding: "\n"
+nacos:
+-
+  name: nacosConf
+  url: http://nacosconf:8848/nacos
+  contextPath: /nacos
+  ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
+  user: dev
+  pwd: 123456
+  master:
+  redis:
+    name: base
+    address: [ "127.0.0.1:6379" ]
+    user:
+    pwd:
 `)
 
 func initConf() {

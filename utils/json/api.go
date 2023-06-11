@@ -47,14 +47,17 @@ func EncodeEscape(val interface{}) ([]byte, error) {
 
 // 转为json
 func Decode(data []byte, v interface{}) error {
+	initTool()
 	return tool.configDefault.Unmarshal(data, v)
 }
 
 // 流式encode
 func StreamEncode(w io.Writer) *encoder.StreamEncoder {
+	initTool()
 	return encoder.NewStreamEncoder(w)
 }
 func StreamDecode(r io.Reader) *decoder.StreamDecoder {
+	initTool()
 	return decoder.NewStreamDecoder(r)
 
 }

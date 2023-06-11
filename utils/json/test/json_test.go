@@ -36,6 +36,7 @@ func TestStreamEncode(t *testing.T) {
 	var enc = json2.StreamEncode(w)
 	_ = enc.Encode(o1)
 	_ = enc.Encode(o2)
+	_ = json2.StreamDecode(w)
 	t.Log(w.String())
 }
 func TestStreamDecode(t *testing.T) {

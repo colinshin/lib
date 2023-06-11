@@ -1,0 +1,8 @@
+zookeeper:
+-
+  name: centerZk
+  address: ['centerZk1:2181', 'centerZk2:2181', 'centerZk3:2181']
+  user:
+  pwd:
+
+#- {name: centerZk2,adderss: [ centerZk ],user: user,pwd: pwd}
