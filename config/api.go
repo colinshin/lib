@@ -34,11 +34,12 @@ type Config struct {
 		ErrLog      zapConfig `yaml:"errlog" json:"errlog"`
 		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
-	Hertz  config.Hertz      `yaml:"hertz" json:"hertz"`
-	Redis  config.RedisConf  `yaml:"redis" json:"redis"`
-	Mysql  config.MysqlConf  `yaml:"mysql" json:"mysql"`
-	Pulsar config.PulsarConf `yaml:"pulsar" json:"pulsar"`
-	Nacos  []config.MidNacos `yaml:"nacos" json:"nacos"`
+	Hertz      config.Hertz          `yaml:"hertz" json:"hertz"`
+	Redis      []config.MidRedisConf `yaml:"redis" json:"redis"`
+	RedisNacos config.NacosConf      `yaml:"redisNacos" json:"redisNacos"`
+	Mysql      config.MysqlConf      `yaml:"mysql" json:"mysql"`
+	Pulsar     config.PulsarConf     `yaml:"pulsar" json:"pulsar"`
+	Nacos      []config.MidNacos     `yaml:"nacos" json:"nacos"`
 }
 
 func (c *Config) String() string {
@@ -91,7 +92,7 @@ app:
       StacktraceKey: stacktrace
       LineEnding: "\n"
   errlog:
-    level: debug
+    level: warn
     encoding: json
     outputPaths:
       - stdout
@@ -109,6 +110,18 @@ app:
       FunctionKey: func
       StacktraceKey: stacktrace
       LineEnding: "\n"
+redis:
+-
+  name: pubRedis
+  address: [ "127.0.0.1:6379" ]
+  user:
+  pwd:
+  master:
+redisNacos:
+  name: nacosConf
+  did: redis
+  group: redis
+  ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
 nacos:
 -
   name: nacosConf

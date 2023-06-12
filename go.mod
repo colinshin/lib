@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/bytedance/sonic v1.8.7
 	github.com/cloudwego/hertz v0.6.2
-	github.com/flyerxp/globalStruct v0.0.0-20230603065034-35b9e1b5a1b7
 	github.com/hertz-contrib/logger/zap v1.0.1-0.20230428050608-fc430385c0ec
 	go.uber.org/zap v1.24.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
@@ -18,6 +17,7 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/flyerxp/globalStruct v0.0.0-20230611085504-0a5891e7a461 // indirect
 	github.com/go-zookeeper/zk v1.0.3 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
@@ -33,4 +33,4 @@ require (
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
 )
 
-//replace github.com/flyerxp/globalStruct v0.0.0-20230603065034-35b9e1b5a1b7 => E:\工作\ch123\globalStruct
+//replace github.com/flyerxp/globalStruct lastest => E:\工作\ch123\globalStruct

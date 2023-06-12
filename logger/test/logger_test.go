@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"errors"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/flyerxp/lib/logger"
 	hertzzap "github.com/hertz-contrib/logger/zap"
@@ -53,9 +54,31 @@ func getWriteSyncer(file string) zapcore.WriteSyncer {
 	return zapcore.AddSync(lumberJackLogger)
 }
 func Test2Encode(t *testing.T) {
-	logger.GetNoticeLog()
+	//logger.AddCtxNotice(context.Background(), zap.Int("cccc", 1111))
+	logger.AddMongoTime(1)
+	logger.AddMysqlTime(1)
+	logger.AddPulsarTime(1)
+	logger.AddKafkaTime(1)
+	logger.AddRpcTime(1)
+	logger.AddEsTime(1)
+	logger.AddRocketTime(1)
+	logger.AddRocketConnTime(1)
+	logger.AddRedisConnTime(1)
+	logger.AddMongoConnTime(1)
+	logger.AddMysqlConnTime(1)
+	logger.AddPulsarConnTime(1)
+	logger.AddKafkaConnTime(1)
+	logger.AddRpcConnTime(1)
+	logger.AddEsConnTime(1)
 	logger.AddNotice(zap.Int("cccc", 1111))
 	logger.AddRedisTime(10)
-	logger.AddNotice(zap.String("cccc", "aaaaaaaaaaaaa"))
-	logger.GetErrorLog().Info("error", zap.Int("aaaaa", 1))
+	logger.SetExecTime(12)
+	logger.AddNotice(zap.String("cccc", "add add add"))
+	//logger.AddCtxNotice(context.Background(), zap.String("cccc", "aaaaaaaaaaaaa"))
+	logger.AddError(zap.Error(errors.New("error error error")))
+	//logger.AddCtxError(context.Background(), zap.Error(errors.New("error error error")))
+	logger.AddError(zap.Error(errors.New("error error error")))
+	//logger.AddCtxWarn(context.Background(), zap.Error(errors.New("warn warn warn")))
+	logger.AddWarn(zap.Error(errors.New("warn warn warn")))
+	logger.WriteLine()
 }

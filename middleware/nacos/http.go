@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/flyerxp/lib/logger"
 	"github.com/valyala/fasthttp"
-	"go.uber.org/zap"
+	zap "go.uber.org/zap"
 	"net/http"
 	"reflect"
 	"sync"
@@ -151,7 +151,7 @@ func (c *httpClient) SendRequest(method string, url string, sendData string, tim
 				Timeout:       timeoutDesc,
 			}
 			err = errors.New(fmt.Sprintf("ERR invalid HTTP response code: %d body %s", statusCode, string(respBody)))
-			logger.GetErrorLog().Info("nacos request fail", zap.Error(err), zap.Any("nacos request fail info1", lm))
+			logger.AddWarn(zap.Any("nacos request fail info1", lm))
 			return nil, err
 		}
 	} else {
@@ -162,7 +162,7 @@ func (c *httpClient) SendRequest(method string, url string, sendData string, tim
 		} else {
 			errMsg = fmt.Sprintf("ERR conn failure:%s %v\n", errName, err)
 		}
-		logger.GetErrorLog().Info("nacos request fail", zap.Error(err), zap.Any("nacos request error info2", errMsg))
+		logger.AddWarn(zap.Error(err), zap.Any("nacos request error info2", errMsg))
 		// || errName == "timeout"
 		if tryNums < 1 && (errName == "conn_close") {
 			return c.SendRequest(method, url, sendData, timeout, tryNums+1)
@@ -175,7 +175,7 @@ func (c *httpClient) SendRequest(method string, url string, sendData string, tim
 			ResponseBody:  string(respBody),
 			Timeout:       timeoutDesc,
 		}
-		logger.GetErrorLog().Info("nacos request fail", zap.Error(err), zap.Any("nacos request fail info", lm))
+		logger.AddWarn(zap.Error(err), zap.Any("nacos request fail info", lm))
 		return nil, errors.New(errMsg)
 	}
 }
