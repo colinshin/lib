@@ -24,7 +24,7 @@ type warMetrics struct {
 
 var warnLogV = new(warnLog)
 
-func GetWarnLog() {
+func getWarnLog() {
 	warnLogV.once.Do(func() {
 		rawJSON, _ := json.Encode(config2.GetConf().App.ErrLog)
 		var cfg zap.Config

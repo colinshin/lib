@@ -76,9 +76,13 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 				PoolTimeout:  time.Second,
 				MaxIdleConns: 30,
 			})
+			redisEngine.RedisClient[name].AddHook(HookLog{})
 			return redisEngine.RedisClient[name], nil
 		}
 	}
 	logger.AddError(zap.Error(errors.New("no find redis config " + name)))
 	return nil, errors.New("no find redis config " + name)
+}
+func Reset() {
+	redisEngine = nil
 }

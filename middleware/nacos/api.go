@@ -85,7 +85,7 @@ func (n *Client) GetToken(ctx context.Context) (*AccessToken, error) {
 	key := n.GetKey("/v1/auth/login")
 	rv, err := n.getDataFromCache(key)
 	// 从缓存中获取
-	if err == nil {
+	if err == nil && rv.Err() != redis.Nil {
 		token := new(AccessToken)
 		bt, e := rv.Bytes()
 		jsonErr := json.Decode(bt, token)
@@ -125,26 +125,27 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	key := n.GetKey("/nacos/v1/cs/configs" + "@@" + did + "@@" + gp + "@@" + ns)
 	token, err := n.GetToken(ctx)
 	rv, rErr := n.getDataFromCache(key)
-
+	if rErr == nil && rv.String() == "" {
+		return rv.Bytes()
+	}
 	//接口报错，则从cache取
 	if err != nil {
-		if rErr != nil && rv.String() != "" {
-			return rv.Bytes()
-		}
-	}
-	hc := n.HttpPool.Get().(*httpClient)
-	bYaml, bErr := hc.SendRequest("GET", n.getUrl("/v1/cs/configs?accessToken="+token.AccessToken+"&tenant="+ns+"&dataId="+did+"&group="+gp), "username="+n.BaseOption.User+"&password="+n.BaseOption.Pwd, 0, 0)
-	n.HttpPool.Put(hc)
-	if bErr == nil {
-		sYaml := string(bYaml)
-		if rErr == nil && rv.String() != sYaml {
-			redisClient.Set(ctx, key, sYaml, time.Hour*48)
-		}
-		return bYaml, nil
+		return []byte{}, err
 	} else {
-		if rErr != nil && rv.Val() != "" {
-			return rv.Bytes()
+		hc := n.HttpPool.Get().(*httpClient)
+		bYaml, bErr := hc.SendRequest("GET", n.getUrl("/v1/cs/configs?accessToken="+token.AccessToken+"&tenant="+ns+"&dataId="+did+"&group="+gp), "username="+n.BaseOption.User+"&password="+n.BaseOption.Pwd, 0, 0)
+		n.HttpPool.Put(hc)
+		if bErr == nil {
+			sYaml := string(bYaml)
+			if rErr == nil && rv.String() != sYaml {
+				redisClient.Set(ctx, key, sYaml, time.Hour*48)
+			}
+			return bYaml, nil
+		} else {
+			if rErr != nil && rv.Val() != "" {
+				return rv.Bytes()
+			}
 		}
+		return []byte{}, bErr
 	}
-	return []byte{}, bErr
 }

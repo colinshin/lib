@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"log"
 	"sync"
+	"time"
 )
 
 // var noticeLog zap.Logger
@@ -16,6 +17,7 @@ type AppLog struct {
 	ZapLog        *zap.Logger
 	once          sync.Once
 	noticeMetrics noticeMetrics
+	execMetrics   eTimeMetrics
 	isInitEd      bool
 }
 
@@ -41,11 +43,41 @@ type MiddleExecTime struct {
 	Mongo    MiddleExec
 }
 
+type ETimeStt struct {
+	Start time.Time `json:"start"`
+	Exec  int       `json:"exec"`
+	Name  string    `json:"name"`
+}
+type eTimeMetrics struct {
+	ETime []ETimeStt `json:"eTime"`
+}
+
+func (e ETimeStt) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddInt(e.Name, e.Exec)
+	return nil
+}
+func (e ETimeStt) Stop() {
+	e.Exec = int(time.Since(e.Start).Milliseconds())
+	noticeLog.execMetrics.ETime = append(noticeLog.execMetrics.ETime, e)
+}
+func (e ETimeStt) GetExec() int {
+	if e.Exec < 0 {
+		e.Exec = int(time.Since(e.Start).Milliseconds())
+	}
+	return e.Exec
+}
+func (e eTimeMetrics) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	for i, v := range e.ETime {
+		if e.ETime[i].Exec >= 0 {
+			enc.AddInt(v.Name, v.Exec)
+		}
+	}
+	return nil
+}
+
 // Log数据聚合
 type noticeMetrics struct {
 	Notice        []zap.Field
-	Error         []zap.Field
-	Warn          []zap.Field
 	Middle        MiddleExecTime
 	TotalExecTime int
 }
@@ -102,7 +134,7 @@ func (r MiddleExecTime) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 
 var noticeLog = new(AppLog)
 
-func GetNoticeLog() {
+func getNoticeLog() {
 	noticeLog.once.Do(func() {
 		rawJSON, _ := json.Encode(config2.GetConf().App.Logger)
 		var cfg zap.Config
@@ -185,6 +217,9 @@ func AddRocketTime(t int) {
 }
 func AddMysqlTime(t int) {
 	addMiddleExecTime(&noticeLog.noticeMetrics.Middle.Mysql, t)
+}
+func StartTime(name string) ETimeStt {
+	return ETimeStt{time.Now(), -1, name}
 }
 func SetExecTime(t int) {
 	noticeLog.noticeMetrics.TotalExecTime = t

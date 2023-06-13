@@ -24,7 +24,7 @@ type errMetrics struct {
 
 var errLogV = new(errLog)
 
-func GetErrorLog() {
+func getErrorLog() {
 	errLogV.once.Do(func() {
 		rawJSON, _ := json.Encode(config2.GetConf().App.ErrLog)
 		var cfg zap.Config

@@ -6,28 +6,34 @@ import (
 
 func AddNotice(field ...zap.Field) {
 	if !noticeLog.isInitEd {
-		GetNoticeLog()
+		getNoticeLog()
 	}
 	//field = append(field, zap.String(ctx.Value("requestId")))
 	noticeLog.noticeMetrics.Notice = append(noticeLog.noticeMetrics.Notice, field...)
 }
 func AddError(field ...zap.Field) {
 	if !errLogV.isInitEd {
-		GetErrorLog()
+		getErrorLog()
 	}
+	/*for i, _ := range field {
+		warnLogV.ZapLog.Error("error", field[i])
+	}*/
 	errLogV.errMetrics.Error = append(errLogV.errMetrics.Error, field...)
 }
 func AddWarn(field ...zap.Field) {
 	if !warnLogV.isInitEd {
-		GetWarnLog()
+		getWarnLog()
 	}
+	/*for i, _ := range field {
+		warnLogV.ZapLog.Warn("warn", field[i])
+	}*/
 	warnLogV.warnMetrics.Warn = append(warnLogV.warnMetrics.Warn, field...)
 }
 
 /*
 	func AddCtxNotice(ctx context.Context, field ...zap.Field) {
 		if !noticeLog.isInitEd {
-			GetNoticeLog()
+			getNoticeLog()
 		}
 		//field = append(field, zap.String(ctx.Value("requestId")))
 		noticeLog.noticeMetrics.Notice = append(noticeLog.noticeMetrics.Notice, field...)
@@ -35,25 +41,34 @@ func AddWarn(field ...zap.Field) {
 
 	func AddCtxError(ctx context.Context, field ...zap.Field) {
 		if !errLogV.isInitEd {
-			GetErrorLog()
+			getErrorLog()
 		}
 		errLogV.errMetrics.Error = append(errLogV.errMetrics.Error, field...)
 	}
 
 	func AddCtxWarn(ctx context.Context, field ...zap.Field) {
 		if !warnLogV.isInitEd {
-			GetWarnLog()
+			getWarnLog()
 		}
 		warnLogV.warnMetrics.Warn = append(warnLogV.warnMetrics.Warn, field...)
 	}
 */
 func WriteLine() {
-	noticeLog.ZapLog.With(zap.Int("execTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(noticeLog.noticeMetrics.Notice...).Info("info")
+	if !noticeLog.isInitEd {
+		getNoticeLog()
+	}
+	noticeLog.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(zap.Object("execTime", noticeLog.execMetrics)).With(noticeLog.noticeMetrics.Notice...).Info("info")
 	if len(errLogV.errMetrics.Error) > 1 {
-		errLogV.ZapLog.With(zap.Int("execTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(errLogV.errMetrics.Error...).WithOptions(zap.AddCallerSkip(1)).Error("error")
+		if !errLogV.isInitEd {
+			getErrorLog()
+		}
+		errLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(errLogV.errMetrics.Error...).WithOptions(zap.AddCallerSkip(1)).Error("error")
 	}
 	if len(warnLogV.warnMetrics.Warn) > 1 {
-		warnLogV.ZapLog.With(zap.Int("execTime", noticeLog.noticeMetrics.TotalExecTime)).With(warnLogV.warnMetrics.Warn...).WithOptions(zap.AddCallerSkip(1)).Warn("warn")
+		if !warnLogV.isInitEd {
+			getWarnLog()
+		}
+		warnLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(warnLogV.warnMetrics.Warn...).WithOptions(zap.AddCallerSkip(1)).Warn("warn")
 	}
 	Reset()
 }
