@@ -17,7 +17,8 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/flyerxp/globalStruct v0.0.0-20230611085504-0a5891e7a461 // indirect
+	 // indirect
+	github.com/flyerxp/globalStruct main
 	github.com/go-zookeeper/zk v1.0.3 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
