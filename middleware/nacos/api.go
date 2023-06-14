@@ -73,7 +73,7 @@ func (n *Client) getUrl(url string) string {
 func (n *Client) getDataFromCache(cacheKey string) (*redis.StringCmd, error) {
 	rv := redisClient.Get(n.Context, cacheKey)
 	if rv.Err() == redis.Nil || rv.Val() == "" {
-		return nil, errors.New("no exists")
+		return rv, errors.New("no exists")
 	}
 	return rv, nil
 }
@@ -128,6 +128,7 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	token, err := n.GetToken(ctx)
 	rv, rErr := n.getDataFromCache(key)
 	if rErr == nil && rv.String() != "" {
+		fmt.Println(rErr, "=======================================")
 		return rv.Bytes()
 	}
 	//接口报错，则从cache取
