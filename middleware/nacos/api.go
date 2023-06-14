@@ -127,7 +127,7 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	key := n.GetKey("/nacos/v1/cs/configs" + "@@" + did + "@@" + gp + "@@" + ns)
 	token, err := n.GetToken(ctx)
 	rv, rErr := n.getDataFromCache(key)
-	if rErr == nil && rv.String() == "" {
+	if rErr == nil && rv.String() != "" {
 		return rv.Bytes()
 	}
 	//接口报错，则从cache取
