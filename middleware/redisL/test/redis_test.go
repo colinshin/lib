@@ -13,10 +13,10 @@ import (
 
 func TestConf(t *testing.T) {
 	s := time.Now()
-	logger.AddNotice(zap.String("a", "cccccccccccccccc"))
-
-	r, _ := redisL.GetEngine("pubRedis", context.Background())
 	big1 := logger.StartTime("beg1")
+	logger.AddNotice(zap.String("a", "cccccccccccccccc"))
+	r, _ := redisL.GetEngine("pubRedis", context.Background())
+
 	l := logger.StartTime("redis-read")
 	r.Get(context.Background(), "aaaa")
 	l.Stop()
