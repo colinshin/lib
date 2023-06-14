@@ -2,15 +2,17 @@ package redisL
 
 import (
 	"context"
+	"fmt"
 	"github.com/flyerxp/lib/app"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/middleware/redisL"
 	"go.uber.org/zap"
 	"testing"
+	"time"
 )
 
 func TestConf(t *testing.T) {
-
+	s := time.Now()
 	logger.AddNotice(zap.String("a", "cccccccccccccccc"))
 
 	r, _ := redisL.GetEngine("pubRedis", context.Background())
@@ -25,4 +27,5 @@ func TestConf(t *testing.T) {
 	logger.WriteLine()
 	app.Shutdown(context.Background())
 	redisL.Reset()
+	fmt.Println(time.Since(s).Milliseconds())
 }
