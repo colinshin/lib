@@ -94,10 +94,12 @@ func (n *Client) GetToken(ctx context.Context) (*AccessToken, error) {
 			return token, e
 		}
 	}
+	s := logger.StartTime("nacos-get-token")
 	hc := n.HttpPool.Get().(*httpClient)
 	hc.ctx(ctx)
 	bToken, bErr := hc.SendRequest("POST", n.getUrl("/v1/auth/login"), "username="+n.BaseOption.User+"&password="+n.BaseOption.Pwd, 0, 0)
 	n.HttpPool.Put(hc)
+	s.Stop()
 	if bErr != nil {
 		logger.AddWarn(zap.Error(bErr))
 		return nil, errors.New("nacos request fail")
@@ -132,7 +134,7 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	if err != nil {
 		return []byte{}, err
 	} else {
-		s := logger.StartTime("nacos request")
+		s := logger.StartTime("nacos-get-config")
 		hc := n.HttpPool.Get().(*httpClient)
 		bYaml, bErr := hc.SendRequest("GET", n.getUrl("/v1/cs/configs?accessToken="+token.AccessToken+"&tenant="+ns+"&dataId="+did+"&group="+gp), "username="+n.BaseOption.User+"&password="+n.BaseOption.Pwd, 0, 0)
 		n.HttpPool.Put(hc)
