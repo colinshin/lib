@@ -128,7 +128,7 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	token, err := n.GetToken(ctx)
 	rv, rErr := n.getDataFromCache(key)
 	if rErr == nil && rv.String() != "" {
-		fmt.Println(rErr, "=======================================")
+
 		return rv.Bytes()
 	}
 	//接口报错，则从cache取
@@ -142,7 +142,7 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 		s.Stop()
 		if bErr == nil {
 			sYaml := string(bYaml)
-			if rErr == nil && rv.String() != sYaml {
+			if rv.String() != sYaml {
 				redisClient.Set(ctx, key, sYaml, time.Hour*48)
 			}
 			return bYaml, nil
