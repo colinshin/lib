@@ -132,9 +132,11 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	if err != nil {
 		return []byte{}, err
 	} else {
+		s := logger.StartTime("nacos request")
 		hc := n.HttpPool.Get().(*httpClient)
 		bYaml, bErr := hc.SendRequest("GET", n.getUrl("/v1/cs/configs?accessToken="+token.AccessToken+"&tenant="+ns+"&dataId="+did+"&group="+gp), "username="+n.BaseOption.User+"&password="+n.BaseOption.Pwd, 0, 0)
 		n.HttpPool.Put(hc)
+		s.Stop()
 		if bErr == nil {
 			sYaml := string(bYaml)
 			if rErr == nil && rv.String() != sYaml {
