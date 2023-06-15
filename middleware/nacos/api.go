@@ -66,6 +66,7 @@ func newClient(o config.MidNacos, ctx context.Context) *Client {
 }
 func (n *Client) GetKey(url string) string {
 	key := n.BaseOption.Url + "@@" + n.BaseOption.User + "@@" + n.BaseOption.Pwd + "@@" + url
+	fmt.Println(key)
 	return fmt.Sprintf("N%x", md5.Sum([]byte(key)))
 }
 func (n *Client) getUrl(url string) string {
