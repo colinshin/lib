@@ -9,6 +9,7 @@ import (
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/utils/json"
+	"github.com/flyerxp/lib/utils/stringL"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"sync"
@@ -66,10 +67,7 @@ func newClient(o config.MidNacos, ctx context.Context) *Client {
 }
 func (n *Client) GetKey(url string) string {
 	key := n.BaseOption.Url + "@@" + url
-	fmt.Println(key)
-	v := fmt.Sprintf("N%x", md5.Sum([]byte(key)))
-	fmt.Println(v)
-	return v
+	return stringL.GetMd5(key)
 }
 func (n *Client) getUrl(url string) string {
 	return n.BaseOption.Url + url
