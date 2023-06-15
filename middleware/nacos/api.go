@@ -51,7 +51,7 @@ func newClient(o config.MidNacos, ctx context.Context) *Client {
 			MaxIdleConns: 30,
 		})
 	}
-	return &Client{
+	c := &Client{
 		o,
 		&sync.Pool{
 			New: func() any {
@@ -62,6 +62,7 @@ func newClient(o config.MidNacos, ctx context.Context) *Client {
 		ctx,
 		new(AccessToken),
 	}
+	return c
 }
 func (n *Client) GetKey(url string) string {
 	key := n.BaseOption.Url + "@@" + n.BaseOption.User + "@@" + n.BaseOption.Pwd + "@@" + url

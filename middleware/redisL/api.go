@@ -31,7 +31,7 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 		conf := config2.GetConf()
 		confList = conf.Redis
 		//本地文件中获取
-		redisEngine.Lock.Lock()
+		//redisEngine.Lock.Lock()
 		for _, v := range confList {
 			if v.Name != "" {
 				redisEngine.RedisConf[v.Name] = v
@@ -56,7 +56,7 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 				}
 			}
 		}
-		redisEngine.Lock.Unlock()
+		//redisEngine.Lock.Unlock()
 	}
 	e, ok := redisEngine.RedisClient[name]
 	if ok {
