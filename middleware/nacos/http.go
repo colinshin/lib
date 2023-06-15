@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/flyerxp/lib/logger"
+	cmap "github.com/orcaman/concurrent-map/v2"
 	"github.com/valyala/fasthttp"
 	zap "go.uber.org/zap"
 	"net/http"
 	"reflect"
-	"sync"
 	"time"
 )
 
@@ -24,8 +24,7 @@ type httpClient struct {
 	Token        string
 }
 
-var drivers map[string]*httpClient
-var dm sync.RWMutex
+var drivers = cmap.New[*httpClient]()
 
 type lastMessage struct {
 	RequestMethod string `json:"request_method"`
@@ -38,18 +37,13 @@ type lastMessage struct {
 }
 
 func newHttpClient(cName string) *httpClient {
-	if _, ok := drivers[cName]; ok {
-		return drivers[cName]
-	}
-	dm.Lock()
-	if ok := drivers == nil; ok {
-		drivers = make(map[string]*httpClient)
+	if h, ok := drivers.Get(cName); ok {
+		return h
 	}
 	c := new(httpClient)
 	c.initHttp()
-	drivers[cName] = c
-	dm.Unlock()
-	return drivers[cName]
+	drivers.Set(cName, c)
+	return c
 }
 
 func (c *httpClient) initHttp() {
