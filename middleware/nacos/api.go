@@ -124,6 +124,11 @@ func (n *Client) GetToken(ctx context.Context) (*AccessToken, error) {
 	}
 }
 
+func (n *Client) DeleteCache(ctx context.Context, did string, gp string, ns string) string {
+	key := n.GetKey("/nacos/v1/cs/configs" + "@@" + did + "@@" + gp + "@@" + ns)
+	redisClient.Del(ctx, key)
+	return key
+}
 func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string) ([]byte, error) {
 	key := n.GetKey("/nacos/v1/cs/configs" + "@@" + did + "@@" + gp + "@@" + ns)
 	token, err := n.GetToken(ctx)
