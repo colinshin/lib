@@ -65,9 +65,11 @@ func newClient(o config.MidNacos, ctx context.Context) *Client {
 	return c
 }
 func (n *Client) GetKey(url string) string {
-	key := n.BaseOption.Url + "@@" + n.BaseOption.User + "@@" + n.BaseOption.Pwd + "@@" + url
+	key := n.BaseOption.Url + "@@" + url
 	fmt.Println(key)
-	return fmt.Sprintf("N%x", md5.Sum([]byte(key)))
+	v := fmt.Sprintf("N%x", md5.Sum([]byte(key)))
+	fmt.Println(v)
+	return v
 }
 func (n *Client) getUrl(url string) string {
 	return n.BaseOption.Url + url
@@ -151,6 +153,7 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 			sYaml := string(bYaml)
 			if rv.String() != sYaml {
 				redisClient.Set(ctx, key, sYaml, time.Hour*48)
+
 			}
 			return bYaml, nil
 		} else {
