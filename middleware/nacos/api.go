@@ -54,7 +54,7 @@ func newClient(o config.MidNacos, ctx context.Context) *Client {
 		o,
 		&sync.Pool{
 			New: func() any {
-				n := stringL.GetMd5(o.Url)
+				n := newHttpClient(stringL.GetMd5(o.Url))
 				return n
 			},
 		},

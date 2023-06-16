@@ -12,6 +12,7 @@ import (
 )
 
 func TestConf(t *testing.T) {
+
 	s := time.Now()
 	logger.AddNotice(zap.String("a", "cccccccccccccccc"))
 	big1 := logger.StartTime("beg1")
