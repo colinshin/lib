@@ -10,7 +10,7 @@ import (
 )
 
 func TestConf(t *testing.T) {
-	a, e := nacos.NewClient("nacosConf", context.Background())
+	a, e := nacos.GetEngine("nacosConf", context.Background())
 	r, _ := a.GetConfig(context.Background(), "zk", "zookeeper", "62c3bcf9-7948-4c26-a353-cebc0a7c9712")
 	zk := new(config2.ZookeeperConf)
 	_ = yaml.DecodeByBytes(r, zk)

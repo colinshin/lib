@@ -2,9 +2,7 @@ package nacos
 
 import (
 	"context"
-	"crypto/md5"
 	"errors"
-	"fmt"
 	"github.com/flyerxp/globalStruct/config"
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/logger"
@@ -32,7 +30,7 @@ type AccessToken struct {
 
 var redisClient redis.UniversalClient
 
-func NewClient(name string, ctx context.Context) (*Client, error) {
+func GetEngine(name string, ctx context.Context) (*Client, error) {
 	for _, v := range config2.GetConf().Nacos {
 		if v.Name == name {
 			return newClient(v, ctx), nil
@@ -56,7 +54,7 @@ func newClient(o config.MidNacos, ctx context.Context) *Client {
 		o,
 		&sync.Pool{
 			New: func() any {
-				n := newHttpClient(fmt.Sprintf("%x", md5.Sum([]byte(o.Url))))
+				n := stringL.GetMd5(o.Url)
 				return n
 			},
 		},

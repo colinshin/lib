@@ -40,7 +40,7 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 		if conf.RedisNacos.Name != "" {
 			var yaml []byte
 			redisList := new(config.RedisConf)
-			ns, e := nacos.NewClient(conf.RedisNacos.Name, ctx)
+			ns, e := nacos.GetEngine(conf.RedisNacos.Name, ctx)
 			if e == nil {
 				yaml, e = ns.GetConfig(ctx, conf.RedisNacos.Did, conf.RedisNacos.Group, conf.RedisNacos.Ns)
 				if e == nil {
