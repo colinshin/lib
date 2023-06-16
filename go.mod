@@ -6,14 +6,16 @@ require (
 	github.com/bytedance/sonic v1.8.7
 	github.com/cloudwego/hertz v0.6.2
 	github.com/hertz-contrib/logger/zap v1.0.1-0.20230428050608-fc430385c0ec
+	github.com/orcaman/concurrent-map/v2 v2.0.1
+	github.com/panjf2000/ants/v2 v2.7.5
 	go.uber.org/zap v1.24.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
+	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/orcaman/concurrent-map/v2 v2.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )
