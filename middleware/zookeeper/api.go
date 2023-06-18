@@ -2,7 +2,6 @@ package zookeeper
 
 import (
 	"errors"
-	config "github.com/flyerxp/globalStruct/config"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/utils/env"
 	yaml "github.com/flyerxp/lib/utils/yaml"
@@ -17,7 +16,7 @@ import (
 var zkEngine = new(Engine)
 
 type Engine struct {
-	Conf       *config.ZookeeperConf
+	Conf       *ZookeeperConf
 	ZkPool     map[string]*sync.Pool
 	Once       sync.Once
 	ReloadNums int32
@@ -37,7 +36,7 @@ func New(cluster string) *zk.Conn {
 						//fmt.Println("\n", "i im createing----------------------------------")
 						c, _, e := zk.Connect(v.Address, time.Second)
 						if e != nil {
-							logger.GetErrorLog().Error("zookeeper "+cluster, zap.Error(e))
+							logger.AddError(zap.Error(e))
 						}
 						return c
 					},
@@ -61,7 +60,7 @@ func New(cluster string) *zk.Conn {
 				}
 			})
 		}
-		logger.GetErrorLog().Error("zookeeper "+cluster, zap.Error(errors.New("no find config")))
+		logger.AddError(zap.Error(errors.New("zk no find config")))
 	}
 	return nil
 }
@@ -76,10 +75,10 @@ func PutConn(c string, conn *zk.Conn) {
 func initConfig() {
 	//fmt.Println("i reload")
 	prefix := "conf"
-	conf := new(config.ZookeeperConf)
+	conf := new(ZookeeperConf)
 	err := yaml.DecodeByFile(filepath.Join(prefix, filepath.Join(env.GetEnv(), "zookeeper.yml")), conf)
 	if err != nil {
-		logger.GetErrorLog().Warn("zookeeper error", zap.Error(err))
+		logger.AddWarn(zap.Error(err))
 	} else {
 		zkEngine.Conf = conf
 	}

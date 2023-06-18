@@ -2,6 +2,9 @@ package config
 
 import (
 	"github.com/flyerxp/globalStruct/config"
+	"github.com/flyerxp/lib/middleware/mysqlL"
+	"github.com/flyerxp/lib/middleware/nacos"
+	"github.com/flyerxp/lib/middleware/redisL"
 	"github.com/flyerxp/lib/utils/env"
 	"github.com/flyerxp/lib/utils/json"
 	yaml "github.com/flyerxp/lib/utils/yaml"
@@ -34,12 +37,12 @@ type Config struct {
 		ErrLog      zapConfig `yaml:"errlog" json:"errlog"`
 		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
-	Hertz      config.Hertz          `yaml:"hertz" json:"hertz"`
-	Redis      []config.MidRedisConf `yaml:"redis" json:"redis"`
-	RedisNacos config.NacosConf      `yaml:"redisNacos" json:"redisNacos"`
-	Mysql      config.MysqlConf      `yaml:"mysql" json:"mysql"`
-	Pulsar     config.PulsarConf     `yaml:"pulsar" json:"pulsar"`
-	Nacos      []config.MidNacos     `yaml:"nacos" json:"nacos"`
+	Hertz      config.Hertz        `yaml:"hertz" json:"hertz"`
+	Redis      redisL.MidRedisConf `yaml:"redis" json:"redis"`
+	RedisNacos nacos.NacosConf     `yaml:"redisNacos" json:"redisNacos"`
+	Mysql      mysqlL.MysqlConf    `yaml:"mysql" json:"mysql"`
+	Pulsar     config.PulsarConf   `yaml:"pulsar" json:"pulsar"`
+	Nacos      []nacos.MidNacos    `yaml:"nacos" json:"nacos"`
 }
 
 func (c *Config) String() string {
