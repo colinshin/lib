@@ -3,7 +3,6 @@ package nacos
 import (
 	"context"
 	"errors"
-	"github.com/flyerxp/globalStruct/config"
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/utils/json"
@@ -15,7 +14,7 @@ import (
 )
 
 type Client struct {
-	BaseOption config.MidNacos
+	BaseOption config2.MidNacos
 	HttpPool   *sync.Pool
 	Context    context.Context
 	Token      *AccessToken
@@ -39,7 +38,7 @@ func GetEngine(name string, ctx context.Context) (*Client, error) {
 	logger.AddError(zap.Error(errors.New("nacos conf no find " + name)))
 	return nil, errors.New("nacos conf no find " + name)
 }
-func newClient(o config.MidNacos, ctx context.Context) *Client {
+func newClient(o config2.MidNacos, ctx context.Context) *Client {
 	if redisClient == nil {
 		redisClient = redis.NewUniversalClient(&redis.UniversalOptions{
 			Addrs:        o.Redis.Address,
