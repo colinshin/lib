@@ -3,7 +3,6 @@ package redisL
 import (
 	"context"
 	"errors"
-	"github.com/flyerxp/globalStruct/config"
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/middleware/nacos"
@@ -16,7 +15,7 @@ import (
 
 type redisClient struct {
 	RedisClient cmap.ConcurrentMap[string, redis.UniversalClient]
-	RedisConf   cmap.ConcurrentMap[string, config.MidRedisConf]
+	RedisConf   cmap.ConcurrentMap[string, config2.MidRedisConf]
 }
 
 var redisEngine *redisClient
@@ -24,8 +23,8 @@ var redisEngine *redisClient
 func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) {
 	if redisEngine == nil {
 		redisEngine = new(redisClient)
-		var confList []config.MidRedisConf
-		redisEngine.RedisConf = cmap.New[config.MidRedisConf]()
+		var confList []config2.MidRedisConf
+		redisEngine.RedisConf = cmap.New[config2.MidRedisConf]()
 		redisEngine.RedisClient = cmap.New[redis.UniversalClient]()
 		conf := config2.GetConf()
 		confList = conf.Redis
@@ -39,7 +38,7 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 		//nacos获取
 		if conf.RedisNacos.Name != "" {
 			var yaml []byte
-			redisList := new(config.RedisConf)
+			redisList := new(config2.RedisConf)
 			ns, e := nacos.GetEngine(conf.RedisNacos.Name, ctx)
 			if e == nil {
 				yaml, e = ns.GetConfig(ctx, conf.RedisNacos.Did, conf.RedisNacos.Group, conf.RedisNacos.Ns)
