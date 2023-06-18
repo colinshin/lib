@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/flyerxp/globalStruct/config"
 	"github.com/flyerxp/lib/utils/env"
 	"github.com/flyerxp/lib/utils/json"
 	yaml "github.com/flyerxp/lib/utils/yaml"
@@ -34,7 +33,7 @@ type Config struct {
 		ErrLog      zapConfig `yaml:"errlog" json:"errlog"`
 		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
-	Hertz      config.Hertz   `yaml:"hertz" json:"hertz"`
+	Hertz      Hertz          `yaml:"hertz" json:"hertz"`
 	Redis      []MidRedisConf `yaml:"redis" json:"redis"`
 	RedisNacos NacosConf      `yaml:"redisNacos" json:"redisNacos"`
 	Mysql      []MidMysqlConf `yaml:"mysql" json:"mysql"`
