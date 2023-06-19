@@ -144,7 +144,7 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	} else {
 		s := logger.StartTime("nacos-get-config")
 		hc := n.HttpPool.Get().(*httpClient)
-		bYaml, bErr := hc.SendRequest("GET", n.getUrl("/v1/cs/configs?accessToken="+token.AccessToken+"&tenant="+ns+"&dataId="+did+"&group="+gp), "username="+n.BaseOption.User+"&password="+n.BaseOption.Pwd, 0, 0)
+		bYaml, bErr := hc.SendRequest("GET", n.getUrl("/v1/cs/configs?accessToken="+token.AccessToken+"&tenant="+ns+"&dataId="+did+"&group="+gp), "", 0, 0)
 		n.HttpPool.Put(hc)
 		s.Stop()
 		if bErr == nil {
