@@ -131,7 +131,10 @@ mysql:
   pwd: 123456
   ssl: disable
   db: nacos
-  charset: utf8mb4
+  read_timeout: 100
+  conn_timeout: 100
+  write_timeout: 100
+  char_set: utf8mb4
   max_idle_conns: 10
   max_open_conns: 500
 mysqlNacos:
