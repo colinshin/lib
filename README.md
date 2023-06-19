@@ -16,3 +16,4 @@ log: go.uber.org/zap
 
 消息订阅分发： pulsar
 
+mysql: github.com/jmoiron/sqlx
