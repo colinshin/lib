@@ -159,11 +159,12 @@ func initConf() {
 	conf = new(Config)
 	err := yaml.DecodeByFile(filepath.Join(prefix, filepath.Join(env.GetEnv(), "app.yml")), conf)
 	if err != nil {
-		log.Printf("default conf no find %v", err)
-		log.Print("use default config")
+		//log.Printf("default conf no find %v", err)
+		//log.Print("use default config")
 		err = yaml.DecodeByBytes(defaultConfig, conf)
 		if err != nil {
 			log.Printf("default config error", err)
 		}
 	}
+
 }

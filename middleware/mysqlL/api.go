@@ -25,7 +25,7 @@ type MysqlClient struct {
 var mysqlEngine *MysqlClient
 
 func GetEngine(name string, ctx context.Context) (*sync.Pool, error) {
-	//gm := logger.StartTime("gm")
+
 	if mysqlEngine == nil {
 		mysqlEngine = new(MysqlClient)
 		var confList []config2.MidMysqlConf
@@ -39,6 +39,7 @@ func GetEngine(name string, ctx context.Context) (*sync.Pool, error) {
 				mysqlEngine.MysqlConf.Set(v.Name, v)
 			}
 		}
+
 		//nacos获取
 		if conf.MysqlNacos.Name != "" {
 			var yaml []byte
@@ -59,6 +60,7 @@ func GetEngine(name string, ctx context.Context) (*sync.Pool, error) {
 			}
 		}
 	}
+
 	e, ok := mysqlEngine.MysqlClient.Get(name)
 	if ok {
 		return e, nil
@@ -67,6 +69,7 @@ func GetEngine(name string, ctx context.Context) (*sync.Pool, error) {
 	if okC {
 		objMysql := newClient(o)
 		mysqlEngine.MysqlClient.Set(name, objMysql)
+
 		return objMysql, nil
 	}
 	logger.AddError(zap.Error(errors.New("no find mysql config " + name)))
