@@ -128,15 +128,18 @@ func (n *Client) DeleteCache(ctx context.Context, did string, gp string, ns stri
 	return key
 }
 func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string) ([]byte, error) {
+	start := time.Now()
 	key := n.GetKey("/nacos/v1/cs/configs" + "@@" + did + "@@" + gp + "@@" + ns)
-	token, err := n.GetToken(ctx)
 	rv, rErr := n.getDataFromCache(key)
 	if rErr == nil && rv.String() != "" {
-
+		logger.AddNacosTime(int(time.Since(start).Milliseconds()))
 		return rv.Bytes()
 	}
-	//接口报错，则从cache取
+	token, err := n.GetToken(ctx)
+	//接口报错，返回空
 	if err != nil {
+		logger.AddNacosTime(int(time.Since(start).Milliseconds()))
+		logger.AddError(zap.Error(err))
 		return []byte{}, err
 	} else {
 		s := logger.StartTime("nacos-get-config")
@@ -150,12 +153,15 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 				redisClient.Set(ctx, key, sYaml, time.Hour*48)
 
 			}
+			logger.AddNacosTime(int(time.Since(start).Milliseconds()))
 			return bYaml, nil
 		} else {
 			if rErr != nil && rv.Val() != "" {
+				logger.AddNacosTime(int(time.Since(start).Milliseconds()))
 				return rv.Bytes()
 			}
 		}
+		logger.AddNacosTime(int(time.Since(start).Milliseconds()))
 		return []byte{}, bErr
 	}
 }

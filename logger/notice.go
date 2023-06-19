@@ -23,6 +23,7 @@ type AppLog struct {
 
 // 中间件耗时
 type MiddleExec struct {
+	Name          string
 	TotalExecTime int
 	Count         int
 	Max           int
@@ -41,6 +42,7 @@ type MiddleExecTime struct {
 	RocketMq MiddleExec
 	Elastic  MiddleExec
 	Mongo    MiddleExec
+	Nacos    MiddleExec
 }
 
 type ETimeStt struct {
@@ -87,39 +89,54 @@ func (a MiddleExec) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddInt("count", a.Count)
 	enc.AddInt("avg", a.Avg)
 	enc.AddInt("max", a.Max)
-	enc.AddInt("ConnTime", a.ConnectTime)
-	enc.AddInt("ConnCount", a.ConnectCount)
+	if a.Name != "nacos" {
+		enc.AddInt("ConnTime", a.ConnectTime)
+		enc.AddInt("ConnCount", a.ConnectCount)
+	}
 	return nil
 }
 
 func (r MiddleExecTime) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	//enc.AddString("total", r.)
 	if r.Redis.Count > 0 {
+		r.Redis.Name = "redis"
 		_ = enc.AddObject("redis", r.Redis)
 	}
 	if r.MemCache.Count > 0 {
+		r.MemCache.Name = "memcache"
 		_ = enc.AddObject("memCache", r.MemCache)
 	}
 	if r.Mongo.Count > 0 {
+		r.Mongo.Name = "mongo"
 		_ = enc.AddObject("mongo", r.Mongo)
 	}
 	if r.Elastic.Count > 0 {
+		r.Elastic.Name = "elastic"
 		_ = enc.AddObject("elastic", r.Elastic)
 	}
 	if r.Kafka.Count > 0 {
+		r.Kafka.Name = "kafka"
 		_ = enc.AddObject("kafka", r.Kafka)
 	}
 	if r.Pulsar.Count > 0 {
+		r.Pulsar.Name = "pulsar"
 		_ = enc.AddObject("pulsar", r.Pulsar)
 	}
 	if r.Rpc.Count > 0 {
+		r.Rpc.Name = "rpc"
 		_ = enc.AddObject("rpc", r.Rpc)
 	}
-	if r.Mysql.Count > 0 {
+	if r.Mysql.Count > 0 || r.Mysql.ConnectCount > 0 {
+		r.Mysql.Name = "mysql"
 		_ = enc.AddObject("mysql", r.Mysql)
 	}
 	if r.RocketMq.Count > 0 {
+		r.RocketMq.Name = "rocket"
 		_ = enc.AddObject("rocket", r.RocketMq)
+	}
+	if r.Nacos.Count > 0 {
+		r.Nacos.Name = "nacos"
+		_ = enc.AddObject("nacos", r.Nacos)
 	}
 	/*zap.Inline(r.MemCache).AddTo(enc)
 	zap.Inline(r.Mongo).AddTo(enc)
@@ -217,6 +234,9 @@ func AddRocketTime(t int) {
 }
 func AddMysqlTime(t int) {
 	addMiddleExecTime(&noticeLog.noticeMetrics.Middle.Mysql, t)
+}
+func AddNacosTime(t int) {
+	addMiddleExecTime(&noticeLog.noticeMetrics.Middle.Nacos, t)
 }
 func StartTime(name string) ETimeStt {
 	return ETimeStt{time.Now(), -1, name}

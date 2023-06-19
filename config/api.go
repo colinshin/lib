@@ -125,12 +125,15 @@ redisNacos:
 mysql:
 -
   name: pubMysql
-  address: pubMysql
+  address: pubmysql
   port: 3306
   user: test
   pwd: 123456
   ssl: disable
   db: nacos
+  charset: utf8mb4
+  max_idle_conns: 10
+  max_open_conns: 500
 mysqlNacos:
   name: nacosConf
   did: mysql
