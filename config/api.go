@@ -131,6 +131,7 @@ mysql:
   pwd: 123456
   ssl: disable
   db: nacos
+  sql_log: yes
   read_timeout: 100
   conn_timeout: 100
   write_timeout: 100

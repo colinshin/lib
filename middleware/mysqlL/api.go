@@ -2,15 +2,18 @@ package mysqlL
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/middleware/nacos"
 	yaml2 "github.com/flyerxp/lib/utils/yaml"
+	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	cmap "github.com/orcaman/concurrent-map/v2"
+	"github.com/qustavo/sqlhooks/v2"
 	"go.uber.org/zap"
 	"strconv"
 	"sync"
@@ -91,16 +94,18 @@ func newClient(o config2.MidMysqlConf) *sync.Pool {
 			if o.ConnTimeout > 0 {
 				dsn = dsn + "&timeout=" + strconv.Itoa(o.ConnTimeout) + "ms"
 			}
+			if o.WriteTimeout > 0 {
+				dsn = dsn + "&writeTimeout=" + strconv.Itoa(o.WriteTimeout) + "ms"
+			}
 			if o.Collation != "" {
 				dsn = dsn + "&collation=" + o.Collation
 			}
-			n, e := sqlx.Open("mysql", dsn)
-			go func() {
-				if err := n.Ping(); err != nil {
-					logger.AddError(zap.String("mysql ping fail", o.Address), zap.Error(err))
-				}
-			}()
-			//defer p.Release()
+			hook := new(Hooks)
+			if o.SqlLog == "yes" {
+				hook.IsPrintSQLDuration = true
+			}
+			sql.Register("mysqlWithHooks", sqlhooks.Wrap(&mysql.MySQLDriver{}, hook))
+			n, e := sqlx.Open("mysqlWithHooks", dsn)
 			logger.AddMysqlConnTime(int(time.Since(start).Milliseconds()))
 			if e != nil {
 				logger.AddError(zap.String("dsn link fail ", o.Name+"|"+o.Address), zap.Error(e))

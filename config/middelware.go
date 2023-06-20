@@ -19,6 +19,7 @@ type MidMysqlConf struct {
 	WriteTimeout int    `yaml:"write_timeout" json:"write_timeout"`
 	ConnTimeout  int    `yaml:"conn_timeout" json:"conn_timeout"`
 	Collation    string `yaml:"collation" json:"collation"`
+	SqlLog       string `yaml:"sql_log" json:"sql_log"` // yes|no
 	MaxOpenConns int    `yaml:"max_open_conns" json:"max_open_conns"`
 	MaxIdleConns int    `yaml:"max_idle_conns" json:"max_idle_conns"`
 }
