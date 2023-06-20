@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/flyerxp/lib/app"
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/middleware/nacos"
@@ -83,6 +84,9 @@ func GetEngine(name string, ctx context.Context) (*MysqlClient, error) {
 				}
 			}
 		}
+		app.RegisterFunc("mysql", "mysql close", func() {
+
+		})
 	}
 
 	e, ok := mysqlEngine.SqlContainer.Get(name)
@@ -148,78 +152,6 @@ func newClient(o config2.MidMysqlConf) *MysqlClient {
 	}
 	return &MysqlClient{c, nil}
 }
-
-/*
-	func (m *MysqlClient) Ping() error {
-		db := m.Poll.Get().(*sqlx.DB)
-		e := db.Ping()
-		m.Poll.Put(db)
-		return e
-	}
-
-	func (m *MysqlClient) PingContext(ctx context.Context) error {
-		db := m.Poll.Get().(*sqlx.DB)
-		e := db.PingContext(ctx)
-		m.Poll.Put(db)
-		return e
-	}
-
-	func (m *MysqlClient) Exec(query string, args ...any) (sql.Result, error) {
-		db := m.Poll.Get().(*sqlx.DB)
-		r, e := db.Exec(query, args...)
-		m.Poll.Put(db)
-		return r, e
-	}
-
-	func (m *MysqlClient) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
-		db := m.Poll.Get().(*sqlx.DB)
-		r, e := db.ExecContext(ctx, query, args...)
-		m.Poll.Put(db)
-		return r, e
-	}
-
-	func (m *MysqlClient) MustExec(query string, args ...any) sql.Result {
-		db := m.Poll.Get().(*sqlx.DB)
-		r := db.MustExec(query, args...)
-		m.Poll.Put(db)
-		return r
-	}
-
-	func (m *MysqlClient) MustExecContext(ctx context.Context, query string, args ...interface{}) sql.Result {
-		db := m.Poll.Get().(*sqlx.DB)
-		r := db.MustExecContext(ctx, query, args...)
-		m.Poll.Put(db)
-		return r
-	}
-
-	func (m *MysqlClient) Query(query string, args ...any) (*sql.Rows, error) {
-		db := m.Poll.Get().(*sqlx.DB)
-		r, e := db.Query(query, args...)
-		m.Poll.Put(db)
-		return r, e
-	}
-
-	func (m *MysqlClient) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-		db := m.Poll.Get().(*sqlx.DB)
-		r, e := db.QueryContext(ctx, query, args...)
-		m.Poll.Put(db)
-		return r, e
-	}
-
-	func (m *MysqlClient) QueryRow(query string, args ...any) *sql.Row {
-		db := m.Poll.Get().(*sqlx.DB)
-		r := db.QueryRow(query, args...)
-		m.Poll.Put(db)
-		return r
-	}
-
-	func (m *MysqlClient) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
-		db := m.Poll.Get().(*sqlx.DB)
-		r := db.QueryRowContext(ctx, query, args...)
-		m.Poll.Put(db)
-		return r
-	}
-*/
 func (m *MysqlClient) GetDb() *sqlx.DB {
 	if m.CurrDb == nil {
 		m.CurrDb = m.Poll.Get().(*sqlx.DB)
@@ -228,4 +160,10 @@ func (m *MysqlClient) GetDb() *sqlx.DB {
 }
 func (m *MysqlClient) PutDb(a *sqlx.DB) {
 	m.Poll.Put(a)
+}
+func Reset() {
+	for _, v := range mysqlEngine.SqlContainer.Items() {
+		v.CurrDb.Close()
+	}
+	mysqlEngine = nil
 }
