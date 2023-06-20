@@ -4,6 +4,13 @@ import (
 	"go.uber.org/zap"
 )
 
+func init() {
+	go func() {
+		getNoticeLog()
+		getErrorLog()
+		getWarnLog()
+	}()
+}
 func AddNotice(field ...zap.Field) {
 	if !noticeLog.isInitEd {
 		getNoticeLog()

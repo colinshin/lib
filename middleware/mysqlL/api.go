@@ -10,7 +10,6 @@ import (
 	"github.com/flyerxp/lib/middleware/nacos"
 	yaml2 "github.com/flyerxp/lib/utils/yaml"
 	"github.com/go-sql-driver/mysql"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"github.com/qustavo/sqlhooks/v2"
@@ -20,20 +19,43 @@ import (
 	"time"
 )
 
-type MysqlClient struct {
-	MysqlClient cmap.ConcurrentMap[string, *sync.Pool]
-	MysqlConf   cmap.ConcurrentMap[string, config2.MidMysqlConf]
+// Mysql 容器
+type SqlContainer struct {
+	SqlContainer cmap.ConcurrentMap[string, *MysqlClient]
+	MysqlConf    cmap.ConcurrentMap[string, config2.MidMysqlConf]
 }
 
-var mysqlEngine *MysqlClient
+// Mysql 客户端
+type MysqlClient struct {
+	Poll   *sync.Pool
+	CurrDb *sqlx.DB
+}
 
-func GetEngine(name string, ctx context.Context) (*sync.Pool, error) {
+var mysqlEngine *SqlContainer
 
+type MysqlLog struct {
+}
+
+func (m *MysqlLog) Print(v ...interface{}) {
+	zapLog := make([]zap.Field, len(v))
+	for i := range v {
+		switch v[i].(type) {
+		case error:
+			zapLog[i] = zap.Error(v[i].(error))
+		case string:
+			zapLog[i] = zap.String("mysql driver error", v[i].(string))
+		default:
+			zapLog[i] = zap.Any("mysql driver error", v[i])
+		}
+	}
+	logger.AddError(zapLog...)
+}
+func GetEngine(name string, ctx context.Context) (*MysqlClient, error) {
 	if mysqlEngine == nil {
-		mysqlEngine = new(MysqlClient)
+		mysqlEngine = new(SqlContainer)
 		var confList []config2.MidMysqlConf
 		mysqlEngine.MysqlConf = cmap.New[config2.MidMysqlConf]()
-		mysqlEngine.MysqlClient = cmap.New[*sync.Pool]()
+		mysqlEngine.SqlContainer = cmap.New[*MysqlClient]()
 		conf := config2.GetConf()
 		confList = conf.Mysql
 		//本地文件中获取
@@ -42,7 +64,6 @@ func GetEngine(name string, ctx context.Context) (*sync.Pool, error) {
 				mysqlEngine.MysqlConf.Set(v.Name, v)
 			}
 		}
-
 		//nacos获取
 		if conf.MysqlNacos.Name != "" {
 			var yaml []byte
@@ -64,15 +85,14 @@ func GetEngine(name string, ctx context.Context) (*sync.Pool, error) {
 		}
 	}
 
-	e, ok := mysqlEngine.MysqlClient.Get(name)
+	e, ok := mysqlEngine.SqlContainer.Get(name)
 	if ok {
 		return e, nil
 	}
 	o, okC := mysqlEngine.MysqlConf.Get(name)
 	if okC {
 		objMysql := newClient(o)
-		mysqlEngine.MysqlClient.Set(name, objMysql)
-
+		mysqlEngine.SqlContainer.Set(name, objMysql)
 		return objMysql, nil
 	}
 	logger.AddError(zap.Error(errors.New("no find mysql config " + name)))
@@ -80,7 +100,7 @@ func GetEngine(name string, ctx context.Context) (*sync.Pool, error) {
 }
 
 // https://github.com/golang-migrate/migrate/blob/master/database/mysql/README.md
-func newClient(o config2.MidMysqlConf) *sync.Pool {
+func newClient(o config2.MidMysqlConf) *MysqlClient {
 	c := &sync.Pool{
 		New: func() any {
 			start := time.Now()
@@ -104,18 +124,19 @@ func newClient(o config2.MidMysqlConf) *sync.Pool {
 			if o.SqlLog == "yes" {
 				hook.IsPrintSQLDuration = true
 			}
+			//_ = mysql.SetLogger(&MysqlLog{})
 			sql.Register("mysqlWithHooks", sqlhooks.Wrap(&mysql.MySQLDriver{}, hook))
 			n, e := sqlx.Open("mysqlWithHooks", dsn)
+			go func() {
+				if n.Ping() != nil {
+					logger.AddError(zap.Error(errors.New("dsn link fail:" + o.Address)))
+				}
+			}()
 			logger.AddMysqlConnTime(int(time.Since(start).Milliseconds()))
 			if e != nil {
 				logger.AddError(zap.String("dsn link fail ", o.Name+"|"+o.Address), zap.Error(e))
 				panic(e.Error())
 			}
-			if e != nil {
-				logger.AddError(zap.String("dsn ping fail ", o.Name+"|"+o.Address), zap.Error(e))
-				panic(e.Error())
-			}
-
 			if o.MaxIdleConns > 0 {
 				n.SetMaxIdleConns(o.MaxIdleConns)
 			}
@@ -125,5 +146,86 @@ func newClient(o config2.MidMysqlConf) *sync.Pool {
 			return n
 		},
 	}
-	return c
+	return &MysqlClient{c, nil}
+}
+
+/*
+	func (m *MysqlClient) Ping() error {
+		db := m.Poll.Get().(*sqlx.DB)
+		e := db.Ping()
+		m.Poll.Put(db)
+		return e
+	}
+
+	func (m *MysqlClient) PingContext(ctx context.Context) error {
+		db := m.Poll.Get().(*sqlx.DB)
+		e := db.PingContext(ctx)
+		m.Poll.Put(db)
+		return e
+	}
+
+	func (m *MysqlClient) Exec(query string, args ...any) (sql.Result, error) {
+		db := m.Poll.Get().(*sqlx.DB)
+		r, e := db.Exec(query, args...)
+		m.Poll.Put(db)
+		return r, e
+	}
+
+	func (m *MysqlClient) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+		db := m.Poll.Get().(*sqlx.DB)
+		r, e := db.ExecContext(ctx, query, args...)
+		m.Poll.Put(db)
+		return r, e
+	}
+
+	func (m *MysqlClient) MustExec(query string, args ...any) sql.Result {
+		db := m.Poll.Get().(*sqlx.DB)
+		r := db.MustExec(query, args...)
+		m.Poll.Put(db)
+		return r
+	}
+
+	func (m *MysqlClient) MustExecContext(ctx context.Context, query string, args ...interface{}) sql.Result {
+		db := m.Poll.Get().(*sqlx.DB)
+		r := db.MustExecContext(ctx, query, args...)
+		m.Poll.Put(db)
+		return r
+	}
+
+	func (m *MysqlClient) Query(query string, args ...any) (*sql.Rows, error) {
+		db := m.Poll.Get().(*sqlx.DB)
+		r, e := db.Query(query, args...)
+		m.Poll.Put(db)
+		return r, e
+	}
+
+	func (m *MysqlClient) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+		db := m.Poll.Get().(*sqlx.DB)
+		r, e := db.QueryContext(ctx, query, args...)
+		m.Poll.Put(db)
+		return r, e
+	}
+
+	func (m *MysqlClient) QueryRow(query string, args ...any) *sql.Row {
+		db := m.Poll.Get().(*sqlx.DB)
+		r := db.QueryRow(query, args...)
+		m.Poll.Put(db)
+		return r
+	}
+
+	func (m *MysqlClient) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
+		db := m.Poll.Get().(*sqlx.DB)
+		r := db.QueryRowContext(ctx, query, args...)
+		m.Poll.Put(db)
+		return r
+	}
+*/
+func (m *MysqlClient) GetDb() *sqlx.DB {
+	if m.CurrDb == nil {
+		m.CurrDb = m.Poll.Get().(*sqlx.DB)
+	}
+	return m.CurrDb
+}
+func (m *MysqlClient) PutDb(a *sqlx.DB) {
+	m.Poll.Put(a)
 }
