@@ -85,7 +85,9 @@ func GetEngine(name string, ctx context.Context) (*MysqlClient, error) {
 			}
 		}
 		app.RegisterFunc("mysql", "mysql close", func() {
-
+			for _, v := range mysqlEngine.SqlContainer.Items() {
+				v.CurrDb.Close()
+			}
 		})
 	}
 
