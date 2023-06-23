@@ -27,6 +27,6 @@ func TestConf(t *testing.T) {
 	big1.Stop()
 	logger.WriteLine()
 	app.Shutdown(context.Background())
-	redisL.Reset()
+	redisL.RedisEngine.Reset()
 	fmt.Println(time.Since(s).Milliseconds())
 }

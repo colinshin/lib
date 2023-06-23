@@ -7,6 +7,5 @@ import (
 )
 
 func TestConf(t *testing.T) {
-	a := config.GetConf().RedisNacos
-	fmt.Println(a)
+	fmt.Println(config.GetConf().App)
 }

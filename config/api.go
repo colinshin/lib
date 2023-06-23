@@ -33,13 +33,15 @@ type Config struct {
 		ErrLog      zapConfig `yaml:"errlog" json:"errlog"`
 		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
-	Hertz      Hertz          `yaml:"hertz" json:"hertz"`
-	Redis      []MidRedisConf `yaml:"redis" json:"redis"`
-	RedisNacos NacosConf      `yaml:"redisNacos" json:"redisNacos"`
-	Mysql      []MidMysqlConf `yaml:"mysql" json:"mysql"`
-	MysqlNacos NacosConf      `yaml:"mysqlNacos" json:"mysqlNacos"`
-	Pulsar     []MidConf      `yaml:"pulsar" json:"pulsar"`
-	Nacos      []MidNacos     `yaml:"nacos" json:"nacos"`
+	Hertz       Hertz           `yaml:"hertz" json:"hertz"`
+	Redis       []MidRedisConf  `yaml:"redis" json:"redis"`
+	RedisNacos  NacosConf       `yaml:"redisNacos" json:"redisNacos"`
+	Mysql       []MidMysqlConf  `yaml:"mysql" json:"mysql"`
+	MysqlNacos  NacosConf       `yaml:"mysqlNacos" json:"mysqlNacos"`
+	Pulsar      []MidPulsarConf `yaml:"pulsar" json:"pulsar"`
+	PulsarNacos NacosConf       `yaml:"pulsarNacos" json:"pulsarNacos"`
+	Nacos       []MidNacos      `yaml:"nacos" json:"nacos"`
+	TopicNacos  []NacosConf     `yaml:"topicNacos"`
 }
 
 func (c *Config) String() string {
@@ -50,6 +52,9 @@ func (c *Config) String() string {
 	return string(b)
 }
 
+func init() {
+	go GetConf()
+}
 func GetConf() *Config {
 	once.Do(initConf)
 	return conf
@@ -77,7 +82,7 @@ app:
     encoding: json
     outputPaths:
       - stdout
-      #- logs/webhook
+      - logs/webhook
     errorOutputPaths:
       - stderr
     initialFields:
@@ -143,6 +148,21 @@ mysqlNacos:
   did: mysql
   group: mysql
   ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
+pulsar:
+-
+  name: pubPulsar
+  address: [ "pubpulsar:6650" ]
+pulsarNacos:
+  name: nacosConf
+  did: pulsar
+  group: pulsar
+  ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
+topicNacos:
+-
+  name: nacosConf
+  did: topic
+  group: topic
+  ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
 nacos:
 -
   name: nacosConf
@@ -171,4 +191,7 @@ func initConf() {
 		}
 	}
 
+}
+func GetConfFile(s string) string {
+	return filepath.Join(prefix, filepath.Join(env.GetEnv(), s))
 }

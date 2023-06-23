@@ -1,7 +1,12 @@
 package logger
 
 import (
+	"fmt"
 	"go.uber.org/zap"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
 func init() {
@@ -60,6 +65,21 @@ func AddWarn(field ...zap.Field) {
 		warnLogV.warnMetrics.Warn = append(warnLogV.warnMetrics.Warn, field...)
 	}
 */
+var CurrDay = time.Now().Day()
+
+func getPath(paths []string, vtype string) []string {
+	for i := range paths {
+		if paths[i] != "stdout" && paths[i] != "stderr" && strings.Contains(paths[i], "/") {
+			patht := filepath.Dir(paths[i])
+			_, err := os.Stat(patht)
+			if os.IsNotExist(err) {
+				_ = os.MkdirAll(patht, os.ModePerm)
+			}
+			paths[i] += fmt.Sprintf("_%s_%02d_%d.log", vtype, time.Now().Month(), time.Now().Day())
+		}
+	}
+	return paths
+}
 func WriteLine() {
 	if !noticeLog.isInitEd {
 		getNoticeLog()
@@ -76,6 +96,35 @@ func WriteLine() {
 			getWarnLog()
 		}
 		warnLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(warnLogV.warnMetrics.Warn...).WithOptions(zap.AddCallerSkip(1)).Warn("warn")
+	}
+	//第二天重置
+	if CurrDay != time.Now().Day() {
+		noticeLog = new(AppLog)
+		getNoticeLog()
+		errLogV = new(errLog)
+		getErrorLog()
+		warnLogV = new(warnLog)
+		getWarnLog()
+		CurrDay = time.Now().Day()
+	}
+	Reset()
+}
+func WriteErr() {
+	if len(errLogV.errMetrics.Error) > 1 {
+		if !errLogV.isInitEd {
+			getErrorLog()
+		}
+		errLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(errLogV.errMetrics.Error...).WithOptions(zap.AddCallerSkip(1)).Error("error")
+		errLogV.errMetrics.Error = make([]zap.Field, 1, 10)
+		errLogV.errMetrics.Error[0] = zap.Namespace("error")
+	}
+	if len(warnLogV.warnMetrics.Warn) > 1 {
+		if !warnLogV.isInitEd {
+			getWarnLog()
+		}
+		warnLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(warnLogV.warnMetrics.Warn...).WithOptions(zap.AddCallerSkip(1)).Warn("warn")
+		warnLogV.warnMetrics.Warn = make([]zap.Field, 1, 10)
+		warnLogV.warnMetrics.Warn[0] = zap.Namespace("warn")
 	}
 	Reset()
 }

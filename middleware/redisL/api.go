@@ -3,6 +3,7 @@ package redisL
 import (
 	"context"
 	"errors"
+	"github.com/flyerxp/lib/app"
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/middleware/nacos"
@@ -18,21 +19,21 @@ type redisClient struct {
 	RedisConf   cmap.ConcurrentMap[string, config2.MidRedisConf]
 }
 
-var redisEngine *redisClient
+var RedisEngine *redisClient
 
 func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) {
-	if redisEngine == nil {
-		redisEngine = new(redisClient)
+	if RedisEngine == nil {
+		RedisEngine = new(redisClient)
 		var confList []config2.MidRedisConf
-		redisEngine.RedisConf = cmap.New[config2.MidRedisConf]()
-		redisEngine.RedisClient = cmap.New[redis.UniversalClient]()
+		RedisEngine.RedisConf = cmap.New[config2.MidRedisConf]()
+		RedisEngine.RedisClient = cmap.New[redis.UniversalClient]()
 		conf := config2.GetConf()
 		confList = conf.Redis
 		//本地文件中获取
-		//redisEngine.Lock.Lock()
+		//RedisEngine.Lock.Lock()
 		for _, v := range confList {
 			if v.Name != "" {
-				redisEngine.RedisConf.Set(v.Name, v)
+				RedisEngine.RedisConf.Set(v.Name, v)
 			}
 		}
 		//nacos获取
@@ -46,7 +47,7 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 					e = yaml2.DecodeByBytes(yaml, redisList)
 					if e == nil {
 						for _, v := range redisList.Redis {
-							redisEngine.RedisConf.Set(v.Name, v)
+							RedisEngine.RedisConf.Set(v.Name, v)
 						}
 					} else {
 						logger.AddError(zap.Error(errors.New("yaml conver error")))
@@ -54,13 +55,16 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 				}
 			}
 		}
-		//redisEngine.Lock.Unlock()
+		_ = app.RegisterFunc("redis", "redis close", func() {
+			RedisEngine.Reset()
+		})
+		//RedisEngine.Lock.Unlock()
 	}
-	e, ok := redisEngine.RedisClient.Get(name)
+	e, ok := RedisEngine.RedisClient.Get(name)
 	if ok {
 		return e, nil
 	}
-	o, okC := redisEngine.RedisConf.Get(name)
+	o, okC := RedisEngine.RedisConf.Get(name)
 	if okC {
 		objRedis := redis.NewUniversalClient(&redis.UniversalOptions{
 			Addrs:        o.Address,
@@ -71,12 +75,15 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 			MaxIdleConns: 30,
 		})
 		objRedis.AddHook(HookLog{})
-		redisEngine.RedisClient.Set(name, objRedis)
+		RedisEngine.RedisClient.Set(name, objRedis)
 		return objRedis, nil
 	}
 	logger.AddError(zap.Error(errors.New("no find redis config " + name)))
 	return nil, errors.New("no find redis config " + name)
 }
-func Reset() {
-	redisEngine = nil
+func (r *redisClient) Reset() {
+	for _, v := range RedisEngine.RedisClient.Items() {
+		_ = v.Close()
+	}
+	RedisEngine = nil
 }

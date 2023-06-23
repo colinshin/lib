@@ -158,6 +158,7 @@ func getNoticeLog() {
 		if err := json2.Unmarshal(rawJSON, &cfg); err != nil {
 			log.Print(err)
 		}
+		cfg.OutputPaths = getPath(cfg.OutputPaths, "notice")
 		noticeLog.noticeMetrics.Notice = append(noticeLog.noticeMetrics.Notice, zap.Namespace("notice"))
 		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
 		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder

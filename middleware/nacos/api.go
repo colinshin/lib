@@ -131,10 +131,12 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	start := time.Now()
 	key := n.GetKey("/nacos/v1/cs/configs" + "@@" + did + "@@" + gp + "@@" + ns)
 	rv, rErr := n.getDataFromCache(key)
+	redisClient.Del(context.Background(), key)
 	if rErr == nil && rv.String() != "" {
 		logger.AddNacosTime(int(time.Since(start).Milliseconds()))
 		return rv.Bytes()
 	}
+
 	token, err := n.GetToken(ctx)
 	//接口报错，返回空
 	if err != nil {
@@ -147,6 +149,7 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 		bYaml, bErr := hc.SendRequest("GET", n.getUrl("/v1/cs/configs?accessToken="+token.AccessToken+"&tenant="+ns+"&dataId="+did+"&group="+gp), "", 0, 0)
 		n.HttpPool.Put(hc)
 		s.Stop()
+
 		if bErr == nil {
 			sYaml := string(bYaml)
 			if rv.String() != sYaml {

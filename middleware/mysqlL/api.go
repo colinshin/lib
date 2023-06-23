@@ -32,7 +32,7 @@ type MysqlClient struct {
 	CurrDb *sqlx.DB
 }
 
-var mysqlEngine *SqlContainer
+var MysqlEngine *SqlContainer
 
 type MysqlLog struct {
 }
@@ -52,17 +52,17 @@ func (m *MysqlLog) Print(v ...interface{}) {
 	logger.AddError(zapLog...)
 }
 func GetEngine(name string, ctx context.Context) (*MysqlClient, error) {
-	if mysqlEngine == nil {
-		mysqlEngine = new(SqlContainer)
+	if MysqlEngine == nil {
+		MysqlEngine = new(SqlContainer)
 		var confList []config2.MidMysqlConf
-		mysqlEngine.MysqlConf = cmap.New[config2.MidMysqlConf]()
-		mysqlEngine.SqlContainer = cmap.New[*MysqlClient]()
+		MysqlEngine.MysqlConf = cmap.New[config2.MidMysqlConf]()
+		MysqlEngine.SqlContainer = cmap.New[*MysqlClient]()
 		conf := config2.GetConf()
 		confList = conf.Mysql
 		//本地文件中获取
 		for _, v := range confList {
 			if v.Name != "" {
-				mysqlEngine.MysqlConf.Set(v.Name, v)
+				MysqlEngine.MysqlConf.Set(v.Name, v)
 			}
 		}
 		//nacos获取
@@ -76,7 +76,7 @@ func GetEngine(name string, ctx context.Context) (*MysqlClient, error) {
 					e = yaml2.DecodeByBytes(yaml, mysqlList)
 					if e == nil {
 						for _, v := range mysqlList.List {
-							mysqlEngine.MysqlConf.Set(v.Name, v)
+							MysqlEngine.MysqlConf.Set(v.Name, v)
 						}
 					} else {
 						logger.AddError(zap.Error(errors.New("yaml conver error")))
@@ -84,21 +84,19 @@ func GetEngine(name string, ctx context.Context) (*MysqlClient, error) {
 				}
 			}
 		}
-		app.RegisterFunc("mysql", "mysql close", func() {
-			for _, v := range mysqlEngine.SqlContainer.Items() {
-				v.CurrDb.Close()
-			}
+		_ = app.RegisterFunc("mysql", "mysql close", func() {
+			MysqlEngine.Reset()
 		})
 	}
 
-	e, ok := mysqlEngine.SqlContainer.Get(name)
+	e, ok := MysqlEngine.SqlContainer.Get(name)
 	if ok {
 		return e, nil
 	}
-	o, okC := mysqlEngine.MysqlConf.Get(name)
+	o, okC := MysqlEngine.MysqlConf.Get(name)
 	if okC {
 		objMysql := newClient(o)
-		mysqlEngine.SqlContainer.Set(name, objMysql)
+		MysqlEngine.SqlContainer.Set(name, objMysql)
 		return objMysql, nil
 	}
 	logger.AddError(zap.Error(errors.New("no find mysql config " + name)))
@@ -163,9 +161,9 @@ func (m *MysqlClient) GetDb() *sqlx.DB {
 func (m *MysqlClient) PutDb(a *sqlx.DB) {
 	m.Poll.Put(a)
 }
-func Reset() {
-	for _, v := range mysqlEngine.SqlContainer.Items() {
-		v.CurrDb.Close()
+func (m *SqlContainer) Reset() {
+	for _, v := range MysqlEngine.SqlContainer.Items() {
+		_ = v.CurrDb.Close()
 	}
-	mysqlEngine = nil
+	MysqlEngine = nil
 }

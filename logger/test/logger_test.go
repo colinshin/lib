@@ -80,5 +80,7 @@ func Test2Encode(t *testing.T) {
 	logger.AddError(zap.Error(errors.New("error error error")))
 	//logger.AddCtxWarn(context.Background(), zap.Error(errors.New("warn warn warn")))
 	logger.AddWarn(zap.Error(errors.New("warn warn warn")))
+	logger.WriteErr()
 	logger.WriteLine()
+
 }

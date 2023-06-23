@@ -36,7 +36,6 @@ func initTool() {
 func Encode(val interface{}) ([]byte, error) {
 	initTool()
 	return tool.configDefault.Marshal(val)
-
 }
 
 // 如果做转义，性能损耗15%，没必要不要做转义
