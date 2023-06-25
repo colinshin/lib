@@ -36,6 +36,7 @@ func TestGo(t *testing.T) {
 			w.Done()
 		})
 	}
+
 	w.Wait()
 	//time.Sleep(time.Millisecond * 5000)
 	//p.ReleaseTimeout(time.Second * 3)

@@ -49,13 +49,22 @@ var topicConf TopicConfS
 
 func init() {
 	go initTopic()
+	go ProducerPre() //预载
 }
 
-func getTopic(code int) (*TopicS, bool) {
+func getTopic(code any) (*TopicS, bool) {
 	if !topicConf.IsInitEd {
 		initTopic()
 	}
-	codeStr := strconv.Itoa(code)
+	codeStr := ""
+	switch code.(type) {
+	case int:
+		codeStr = strconv.Itoa(code.(int))
+	case string:
+		codeStr = code.(string)
+	default:
+		panic(errors.New("topic 必须是数字或字符串"))
+	}
 	if t, ok := topicConf.Topic[codeStr]; ok {
 		return &t, true
 	} else {
@@ -84,6 +93,7 @@ func initTopic() {
 	}
 }
 
+// 获取topic数据
 func topicDistributionF() (TopicConfS, error) {
 	topicConfTmp := TopicConfS{}
 	topicConfTmp.TopicDistribution = make(map[int]string)
@@ -129,6 +139,21 @@ func getConfFile() error {
 		return errf
 	}
 	return nil
+}
+
+// 预载Producer
+func ProducerPre() {
+	once.Do(func() {
+		tmpInitTopic := struct {
+			Topicinit []string `yaml:"topicinit"`
+		}{}
+		err := yaml.DecodeByFile(config.GetConfFile("topicinit.yml"), &tmpInitTopic)
+		if err == nil {
+			if len(tmpInitTopic.Topicinit) > 0 {
+				producerPreInit(tmpInitTopic.Topicinit)
+			}
+		}
+	})
 }
 func getTopicConfig(topicConfTmp *TopicConfS, tmpConf *yamlTopic) {
 	for ck, cv := range tmpConf.TopicDistribution {

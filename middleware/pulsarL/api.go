@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"github.com/apache/pulsar-client-go/pulsar"
+	"github.com/apache/pulsar-client-go/pulsar/log"
+	"github.com/flyerxp/lib/app"
 	config2 "github.com/flyerxp/lib/config"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/middleware/nacos"
 	yaml2 "github.com/flyerxp/lib/utils/yaml"
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"go.uber.org/zap"
-	_ "log"
 	"strings"
 )
 
@@ -29,6 +30,9 @@ var pulsarEngine *PulsarContainer
 
 func init() {
 	go initEngine(context.Background())
+	_ = app.RegisterFunc("pulsar", "pulsar", func() {
+		Reset()
+	})
 }
 func initEngine(ctx context.Context) {
 	pulsarEngine = new(PulsarContainer)
@@ -43,7 +47,6 @@ func initEngine(ctx context.Context) {
 			pulsarEngine.PulsarConf.Set(v.Name, v)
 		}
 	}
-
 	if conf.PulsarNacos.Name != "" {
 		var yaml []byte
 		pulsarList := new(config2.PulsarConf)
@@ -67,6 +70,7 @@ func initEngine(ctx context.Context) {
 			logger.AddError(zap.Error(e))
 		}
 	}
+
 }
 func GetEngine(name string, ctx context.Context) (*PulsarClient, error) {
 	if pulsarEngine == nil {
@@ -90,12 +94,12 @@ func GetEngine(name string, ctx context.Context) (*PulsarClient, error) {
 
 func newClient(o config2.MidPulsarConf) *PulsarClient {
 	client, err := pulsar.NewClient(pulsar.ClientOptions{
-		URL: "pulsar://" + strings.Join(o.Address, ","),
+		URL:    "pulsar://" + strings.Join(o.Address, ","),
+		Logger: log.NewLoggerWithLogrus(getLog()),
 	})
 	if err != nil {
 		logger.AddError(zap.Error(err))
 	}
-
 	return &PulsarClient{client}
 }
 
@@ -112,6 +116,10 @@ func (p *PulsarContainer) Reset() {
 }
 func Reset() {
 	Flush()
+	for _, v := range pulsarEngine.PulsarContainer.Items() {
+		v.CurrPulsar.Close()
+	}
+	initProducer()
 	pulsarEngine = nil
 	_, _ = topicDistributionF()
 }

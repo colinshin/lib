@@ -71,9 +71,6 @@ func (n *Client) getUrl(url string) string {
 }
 func (n *Client) getDataFromCache(cacheKey string) (*redis.StringCmd, error) {
 	rv := redisClient.Get(n.Context, cacheKey)
-	if rv.Err() == redis.Nil || rv.Val() == "" {
-		return rv, errors.New("no exists")
-	}
 	return rv, nil
 }
 
@@ -131,12 +128,10 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 	start := time.Now()
 	key := n.GetKey("/nacos/v1/cs/configs" + "@@" + did + "@@" + gp + "@@" + ns)
 	rv, rErr := n.getDataFromCache(key)
-	redisClient.Del(context.Background(), key)
-	if rErr == nil && rv.String() != "" {
+	if rErr == nil && rv.Err() != redis.Nil {
 		logger.AddNacosTime(int(time.Since(start).Milliseconds()))
 		return rv.Bytes()
 	}
-
 	token, err := n.GetToken(ctx)
 	//接口报错，返回空
 	if err != nil {
@@ -149,12 +144,10 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 		bYaml, bErr := hc.SendRequest("GET", n.getUrl("/v1/cs/configs?accessToken="+token.AccessToken+"&tenant="+ns+"&dataId="+did+"&group="+gp), "", 0, 0)
 		n.HttpPool.Put(hc)
 		s.Stop()
-
 		if bErr == nil {
 			sYaml := string(bYaml)
 			if rv.String() != sYaml {
-				redisClient.Set(ctx, key, sYaml, time.Hour*48)
-
+				redisClient.Set(ctx, key, sYaml, time.Second*86400*2)
 			}
 			logger.AddNacosTime(int(time.Since(start).Milliseconds()))
 			return bYaml, nil

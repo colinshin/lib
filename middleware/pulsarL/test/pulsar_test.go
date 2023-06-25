@@ -3,6 +3,7 @@ package pulsarL
 import (
 	"context"
 	"fmt"
+	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/middleware/pulsarL"
 	"strconv"
 	"testing"
@@ -11,20 +12,19 @@ import (
 
 func TestProd(T *testing.T) {
 	time.Sleep(time.Second)
-	for i := 0; i <= 10; i++ {
-		t := time.Now()
+	fmt.Println("开始发10000条消息")
+	t := time.Now()
+	for i := 0; i < 10000; i++ {
 		_ = pulsarL.Producer(&pulsarL.OutMessage{
 			Topic:      10101001,
 			Content:    map[string]string{"a": "b", "c": "==============" + strconv.Itoa(i) + "=================="},
 			Properties: map[string]string{},
-			IsSync:     false,
 			Delay:      0,
 		}, context.Background())
-		fmt.Println(time.Since(t).Milliseconds(), "总耗时")
 	}
+	fmt.Println(time.Since(t).Milliseconds(), "10000条消息总耗时，牛逼！")
 	pulsarL.Flush()
-	pulsarL.Reset()
-	//logger.WriteLine()
+	logger.WriteLine()
 }
 func TestConsum(T *testing.T) {
 	/*

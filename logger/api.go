@@ -42,43 +42,40 @@ func AddWarn(field ...zap.Field) {
 	warnLogV.warnMetrics.Warn = append(warnLogV.warnMetrics.Warn, field...)
 }
 
-/*
-	func AddCtxNotice(ctx context.Context, field ...zap.Field) {
-		if !noticeLog.isInitEd {
-			getNoticeLog()
-		}
-		//field = append(field, zap.String(ctx.Value("requestId")))
-		noticeLog.noticeMetrics.Notice = append(noticeLog.noticeMetrics.Notice, field...)
-	}
-
-	func AddCtxError(ctx context.Context, field ...zap.Field) {
-		if !errLogV.isInitEd {
-			getErrorLog()
-		}
-		errLogV.errMetrics.Error = append(errLogV.errMetrics.Error, field...)
-	}
-
-	func AddCtxWarn(ctx context.Context, field ...zap.Field) {
-		if !warnLogV.isInitEd {
-			getWarnLog()
-		}
-		warnLogV.warnMetrics.Warn = append(warnLogV.warnMetrics.Warn, field...)
-	}
-*/
 var CurrDay = time.Now().Day()
 
-func getPath(paths []string, vtype string) []string {
-	for i := range paths {
-		if paths[i] != "stdout" && paths[i] != "stderr" && strings.Contains(paths[i], "/") {
-			patht := filepath.Dir(paths[i])
-			_, err := os.Stat(patht)
+type Event struct {
+	Name string
+	F    func()
+}
+
+var makeFileEvent = make([]Event, 0, 15)
+
+var resetEvent = make([]Event, 0, 15)
+
+// 生成文件的时候执行
+func RegistermakeFileEvent(F Event) {
+	makeFileEvent = append(makeFileEvent, F)
+}
+
+// Reset 的时候执行
+func RegisterReset(F Event) {
+	resetEvent = append(resetEvent, F)
+}
+func GetPath(paths []string, vtype string) []string {
+	pathNew := make([]string, len(paths))
+	copy(pathNew, paths)
+	for i := range pathNew {
+		if pathNew[i] != "" && pathNew[i] != "stdout" && pathNew[i] != "stderr" && strings.Contains(pathNew[i], "/") {
+			pathTmp := filepath.Dir(pathNew[i])
+			_, err := os.Stat(pathTmp)
 			if os.IsNotExist(err) {
-				_ = os.MkdirAll(patht, os.ModePerm)
+				_ = os.MkdirAll(pathTmp, os.ModePerm)
 			}
-			paths[i] += fmt.Sprintf("_%s_%02d_%d.log", vtype, time.Now().Month(), time.Now().Day())
+			pathNew[i] += fmt.Sprintf("_%s_%02d_%d.log", vtype, time.Now().Month(), time.Now().Day())
 		}
 	}
-	return paths
+	return pathNew
 }
 func WriteLine() {
 	if !noticeLog.isInitEd {
@@ -99,12 +96,14 @@ func WriteLine() {
 	}
 	//第二天重置
 	if CurrDay != time.Now().Day() {
-		noticeLog = new(AppLog)
-		getNoticeLog()
-		errLogV = new(errLog)
-		getErrorLog()
-		warnLogV = new(warnLog)
-		getWarnLog()
+		makeFileEventNew := make([]Event, 0, 15)
+		copy(makeFileEventNew, makeFileEvent)
+		makeFileEvent = make([]Event, 0, 15)
+		resetEvent = make([]Event, 0, 15)
+		Reset()
+		for _, f := range makeFileEventNew {
+			f.F()
+		}
 		CurrDay = time.Now().Day()
 	}
 	Reset()
@@ -130,12 +129,7 @@ func WriteErr() {
 }
 
 func Reset() {
-	noticeLog.noticeMetrics.Middle = MiddleExecTime{}
-	noticeLog.noticeMetrics.Notice = make([]zap.Field, 1, 10)
-	noticeLog.noticeMetrics.Notice[0] = zap.Namespace("notice")
-	noticeLog.noticeMetrics.TotalExecTime = 0
-	errLogV.errMetrics.Error = make([]zap.Field, 1, 10)
-	errLogV.errMetrics.Error[0] = zap.Namespace("error")
-	warnLogV.warnMetrics.Warn = make([]zap.Field, 1, 10)
-	warnLogV.warnMetrics.Warn[0] = zap.Namespace("warn")
+	for _, f := range resetEvent {
+		f.F()
+	}
 }

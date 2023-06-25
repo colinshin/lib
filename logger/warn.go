@@ -31,6 +31,7 @@ func getWarnLog() {
 		if err := json2.Unmarshal(rawJSON, &cfg); err != nil {
 			log.Print(err)
 		}
+		cfg.OutputPaths = GetPath(cfg.OutputPaths, "warn")
 		warnLogV.warnMetrics.Warn = append(warnLogV.warnMetrics.Warn, zap.Namespace("warn"))
 		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
 		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
@@ -38,6 +39,14 @@ func getWarnLog() {
 		cfg.EncoderConfig.EncodeCaller = zapcore.FullCallerEncoder
 		warnLogV.ZapLog = zap.Must(cfg.Build())
 		warnLogV.isInitEd = true
+		RegistermakeFileEvent(Event{"error", func() {
+			warnLogV = new(warnLog)
+			getWarnLog()
+		}})
+		RegisterReset(Event{"notice", func() {
+			warnLogV.warnMetrics.Warn = make([]zap.Field, 1, 10)
+			warnLogV.warnMetrics.Warn[0] = zap.Namespace("warn")
+		}})
 		_ = app.RegisterFunc("warnLog", "errLog sync", func() {
 			e := warnLogV.ZapLog.Sync()
 			if e != nil {

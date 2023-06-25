@@ -3,7 +3,7 @@ module github.com/flyerxp/lib
 go 1.20
 
 require (
-	github.com/apache/pulsar-client-go v0.10.0
+	github.com/apache/pulsar-client-go v0.9.1-0.20230616094333-7f91b2bcd798
 	github.com/bytedance/sonic v1.8.7
 	github.com/cloudwego/hertz v0.6.2
 	github.com/go-sql-driver/mysql v1.7.1

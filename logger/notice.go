@@ -158,7 +158,7 @@ func getNoticeLog() {
 		if err := json2.Unmarshal(rawJSON, &cfg); err != nil {
 			log.Print(err)
 		}
-		cfg.OutputPaths = getPath(cfg.OutputPaths, "notice")
+		cfg.OutputPaths = GetPath(config2.GetConf().App.Logger.OutputPaths, "notice")
 		noticeLog.noticeMetrics.Notice = append(noticeLog.noticeMetrics.Notice, zap.Namespace("notice"))
 		cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
 		cfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
@@ -166,6 +166,16 @@ func getNoticeLog() {
 		cfg.EncoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 		noticeLog.ZapLog = zap.Must(cfg.Build())
 		noticeLog.isInitEd = true
+		RegistermakeFileEvent(Event{"notice", func() {
+			noticeLog = new(AppLog)
+			getNoticeLog()
+		}})
+		RegisterReset(Event{"notice", func() {
+			noticeLog.noticeMetrics.Middle = MiddleExecTime{}
+			noticeLog.noticeMetrics.Notice = make([]zap.Field, 1, 10)
+			noticeLog.noticeMetrics.Notice[0] = zap.Namespace("notice")
+			noticeLog.noticeMetrics.TotalExecTime = 0
+		}})
 		_ = app.RegisterFunc("logger", "sync logger", func() {
 			e := noticeLog.ZapLog.Sync()
 			if e != nil {
