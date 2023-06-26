@@ -90,10 +90,11 @@ func Producer(o *OutMessage, ctx context.Context) error {
 			BatchingMaxMessages:             100,
 			PartitionsAutoDiscoveryInterval: time.Second * 86400 * 5,
 		})
-		if p == nil {
+		if p != nil {
 			producerQue.Que.Set(codeStr, p)
 		} else {
-			logger.AddError(zap.Error(errors.New("product 创建失败" + codeStr + ":" + objTopic.Cluster)))
+			logger.AddError(zap.Error(errors.New("producer 创建失败" + codeStr + ":" + objTopic.Cluster)))
+			logger.AddError(zap.Error(e))
 			logger.WriteErr()
 			return errors.New("topic 信息获取失败")
 		}
