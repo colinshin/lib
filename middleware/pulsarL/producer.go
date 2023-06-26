@@ -26,6 +26,11 @@ type PulsarMessage struct {
 	Properties   map[string]string `json:"properties"`
 }
 
+func (p PulsarMessage) String() string {
+	tmp, _ := json2.Encode(p)
+	return string(tmp)
+}
+
 type OutMessage struct {
 	Topic      int               `json:"topic"`
 	TopicStr   string            `json:"topic_str"`
@@ -56,9 +61,14 @@ func initProducer() {
 }
 
 func Producer(o *OutMessage, ctx context.Context) error {
-	objTopic, ok := getTopic(o.Topic)
+	start := time.Now()
+	codeStr := o.TopicStr
+	if o.Topic > 0 {
+		codeStr = strconv.Itoa(o.Topic)
+	}
+	objTopic, ok := getTopic(codeStr)
 	if !ok {
-		panic(errors.New(fmt.Sprintf("%d no find message %s", o.Topic, o.Content)))
+		panic(errors.New(fmt.Sprintf("%s no find message %s", codeStr, o.Content)))
 	}
 	pMessage := getPulsarMessage(o, objTopic, ctx)
 	pClient, e := GetEngine(objTopic.Cluster, ctx)
@@ -66,10 +76,7 @@ func Producer(o *OutMessage, ctx context.Context) error {
 	if e != nil {
 		logger.AddError(zap.Error(e), zap.Any("message", o))
 	}
-	codeStr := o.TopicStr
-	if o.Topic > 0 {
-		codeStr = strconv.Itoa(objTopic.Code)
-	}
+
 	var p pulsar.Producer
 	p, ok = producerQue.Que.Get(codeStr)
 	if !ok {
@@ -89,6 +96,7 @@ func Producer(o *OutMessage, ctx context.Context) error {
 	}
 	if e != nil {
 		logger.AddError(zap.Error(e))
+		logger.AddPulsarTime(int(time.Since(start).Milliseconds()))
 		panic(e)
 	}
 	atomic.AddInt32(&producerQue.Sending, 1)
@@ -100,7 +108,7 @@ func Producer(o *OutMessage, ctx context.Context) error {
 		atomic.AddInt32(&producerQue.Sending, -1)
 		producerQue.Wg.Done()
 	})
-
+	logger.AddPulsarTime(int(time.Since(start).Milliseconds()))
 	return nil
 }
 func getPulsarMessage(o *OutMessage, objTopic *TopicS, ctx context.Context) *pulsar.ProducerMessage {
@@ -152,10 +160,10 @@ func producerPreInit(t []string) {
 	for _, codeStr := range t {
 		objTopic, ok := getTopic(codeStr)
 		pClient, _ := GetEngine(objTopic.Cluster, context.Background())
+
 		p, ok = producerQue.Que.Get(codeStr)
 		if !ok {
-			//官方此处存在性能问题,协程下直接卡死
-			//，目前无解,NewRequestID
+			//官方此处存在性能问题
 			p, _ = pClient.CurrPulsar.CreateProducer(pulsar.ProducerOptions{
 				Topic:              codeStr,
 				ProducerAccessMode: pulsar.ProducerAccessModeShared,
@@ -173,10 +181,16 @@ func producerPreInit(t []string) {
 func Flush() {
 	if producerQue != nil {
 		producerQue.Wg.Wait()
+		//a, f, l, c := runtime.Caller(1)
+		//fmt.Println(a, f, l, c)
+		//fmt.Println("i run i run i run")
 		for _, v := range producerQue.Que.Items() {
-			e := v.Flush()
-			if e != nil {
-				logger.AddError(zap.Error(e))
+			//fmt.Println(v.LastSequenceID(), "=======================", v.Topic())
+			if v.LastSequenceID() > 0 {
+				e := v.Flush()
+				if e != nil {
+					logger.AddError(zap.Error(e))
+				}
 			}
 		}
 	}

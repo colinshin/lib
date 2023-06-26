@@ -3,6 +3,7 @@ package pulsarL
 import (
 	"context"
 	"fmt"
+	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/flyerxp/lib/logger"
 	"github.com/flyerxp/lib/middleware/pulsarL"
 	"strconv"
@@ -11,62 +12,49 @@ import (
 )
 
 func TestProd(T *testing.T) {
-	time.Sleep(time.Second)
+	//return
+	time.Sleep(time.Second * 1)
 	fmt.Println("开始发10000条消息")
 	t := time.Now()
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < 6; i++ {
 		_ = pulsarL.Producer(&pulsarL.OutMessage{
 			Topic:      10101001,
-			Content:    map[string]string{"a": "b", "c": "==============" + strconv.Itoa(i) + "=================="},
-			Properties: map[string]string{},
+			Content:    map[string]string{"a": "b", "10101001": "==============" + strconv.Itoa(i) + "=================="},
+			Properties: map[string]string{"prop": "prop"},
+			Delay:      0,
+		}, context.Background())
+		_ = pulsarL.Producer(&pulsarL.OutMessage{
+			TopicStr:   "test",
+			Content:    map[string]string{"a": "b", "test": "==============test=================="},
+			Properties: map[string]string{"prop": "prop"},
 			Delay:      0,
 		}, context.Background())
 	}
-	fmt.Println(time.Since(t).Milliseconds(), "10000条消息总耗时，牛逼！")
+	fmt.Println(time.Since(t).Milliseconds(), "总耗时！")
 	pulsarL.Flush()
 	logger.WriteLine()
 }
 func TestConsum(T *testing.T) {
-	/*
-		r, _ := pulsarL.GetEngine("pubPulsar", context.Background())
-		p := r.GetPulsar()
-		consumer, err := p.Subscribe(pulsar.ConsumerOptions{
-			Topic:            10101001,
-			SubscriptionName: "my-sub",
-			Type:             pulsar.Shared,
-		})
-		fmt.Println(err)
-		defer consumer.Close()
-		for i := 0; i <= 1; i++ {
-			msg, err := consumer.Receive(context.Background())
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Printf("Received message msgId: %#v -- content: '%s'\n",
-				msg.ID(), string(msg.Payload()))
-		}*/
+	//return
+	topics := pulsarL.GetStringTopics([]int{10101001})
+	topics = append(topics, "test")
+	c := pulsarL.NewConsumer(topics, "testConsume", pulsarL.WithDlq(pulsar.DLQPolicy{
+		MaxDeliveries:    5,
+		DeadLetterTopic:  "dead_test",
+		RetryLetterTopic: "retry_test",
+	}))
 
-}
-func TestConsumRead(T *testing.T) {
-	/*	r, _ := pulsarL.GetEngine("pubPulsar", context.Background())
-		p := r.GetPulsar()
-		reader, err := p.CreateReader(pulsar.ReaderOptions{
-			Topic:          "test",
-			StartMessageID: pulsar.EarliestMessageID(),
-		})
-		if err != nil {
-			log.Fatal(err)
+	count := 0
+	c.Consumer(func(message *pulsar.ConsumerMessage, message2 *pulsarL.PulsarMessage) bool {
+		//c.Stop()
+		fmt.Println(message2.String())
+		fmt.Println(message.Properties())
+		fmt.Println(message2.Topic)
+		count++
+		if count == 9 {
+			pulsarL.RetryAfter(message, time.Second*10, map[string]string{"aaa": "abdddddddddddddddddddddddddddddddddddddddddcd"})
+			return true
 		}
-		defer reader.Close()
-
-		for reader.HasNext() {
-			msg, err := reader.Next(context.Background())
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Printf("Received message msgId: %#v -- content: '%s'\n",
-				msg.ID(), string(msg.Payload()))
-		}*/
-
+		return true
+	})
 }

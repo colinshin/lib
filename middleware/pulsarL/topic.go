@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -46,6 +47,7 @@ func getCluster(code int, t map[int]string) string {
 }
 
 var topicConf TopicConfS
+var topicOnce sync.Once
 
 func init() {
 	go initTopic()
@@ -66,10 +68,13 @@ func getTopic(code any) (*TopicS, bool) {
 		panic(errors.New("topic 必须是数字或字符串"))
 	}
 	if t, ok := topicConf.Topic[codeStr]; ok {
+		if t.CodeStr == "" {
+			t.CodeStr = strconv.Itoa(t.Code)
+		}
 		return &t, true
 	} else {
 		//如果没找到，自动重新载入配置
-		eStr := fmt.Sprintf("topic:%d no find, 5 second reset load", code)
+		eStr := fmt.Sprintf("topic:%s no find, 5 second reset load", codeStr)
 		logger.AddWarn(zap.Error(errors.New(eStr)))
 		topicConf.IsInitEd = false
 		if !topicConf.isLoading {
@@ -122,6 +127,7 @@ func topicDistributionF() (TopicConfS, error) {
 	if getConfFile() == nil {
 		tmpConf := new(yamlTopic)
 		err := yaml.DecodeByFile(config.GetConfFile("pulsar.yml"), tmpConf)
+
 		if err != nil {
 			logger.AddError(zap.String("pusal topic error", "pulsar.yml read error"), zap.Error(err))
 			return topicConfTmp, nil
@@ -143,7 +149,7 @@ func getConfFile() error {
 
 // 预载Producer
 func ProducerPre() {
-	once.Do(func() {
+	topicOnce.Do(func() {
 		tmpInitTopic := struct {
 			Topicinit []string `yaml:"topicinit"`
 		}{}

@@ -11,6 +11,6 @@ topic:
   code: 10101002
   delay: 0
 -
-  code_str: test2
+  code_str: test
   delay: 0
-  cluster: pub
+  cluster: pubPulsar
