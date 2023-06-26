@@ -72,11 +72,9 @@ func Producer(o *OutMessage, ctx context.Context) error {
 	}
 	pMessage := getPulsarMessage(o, objTopic, ctx)
 	pClient, e := GetEngine(objTopic.Cluster, ctx)
-
 	if e != nil {
 		logger.AddError(zap.Error(e), zap.Any("message", o))
 	}
-
 	var p pulsar.Producer
 	p, ok = producerQue.Que.Get(codeStr)
 	if !ok {
@@ -87,17 +85,24 @@ func Producer(o *OutMessage, ctx context.Context) error {
 			ProducerAccessMode: pulsar.ProducerAccessModeShared,
 			//DisableBlockIfQueueFull: true,
 			BatchingMaxSize:                 1048576, //1M
-			SendTimeout:                     time.Second * 5,
+			SendTimeout:                     time.Second * 2,
 			BatchingMaxPublishDelay:         2 * time.Second,
 			BatchingMaxMessages:             100,
 			PartitionsAutoDiscoveryInterval: time.Second * 86400 * 5,
 		})
-		producerQue.Que.Set(codeStr, p)
+		if p == nil {
+			producerQue.Que.Set(codeStr, p)
+		} else {
+			logger.AddError(zap.Error(errors.New("product 创建失败" + codeStr + ":" + objTopic.Cluster)))
+			logger.WriteErr()
+			return errors.New("topic 信息获取失败")
+		}
 	}
 	if e != nil {
-		logger.AddError(zap.Error(e))
+		logger.AddError(zap.String("pulsar", "pulsar producer create timeout"), zap.Error(e))
+		logger.WriteErr()
 		logger.AddPulsarTime(int(time.Since(start).Milliseconds()))
-		panic(e)
+		panic(errors.New("pulsar producer create timeout," + e.Error()))
 	}
 	atomic.AddInt32(&producerQue.Sending, 1)
 	producerQue.Wg.Add(1)
@@ -157,6 +162,7 @@ func getPulsarMessage(o *OutMessage, objTopic *TopicS, ctx context.Context) *pul
 }
 func producerPreInit(t []string) {
 	var p pulsar.Producer
+	var err error
 	for _, codeStr := range t {
 		objTopic, ok := getTopic(codeStr)
 		pClient, _ := GetEngine(objTopic.Cluster, context.Background())
@@ -164,7 +170,7 @@ func producerPreInit(t []string) {
 		p, ok = producerQue.Que.Get(codeStr)
 		if !ok {
 			//官方此处存在性能问题
-			p, _ = pClient.CurrPulsar.CreateProducer(pulsar.ProducerOptions{
+			p, err = pClient.CurrPulsar.CreateProducer(pulsar.ProducerOptions{
 				Topic:              codeStr,
 				ProducerAccessMode: pulsar.ProducerAccessModeShared,
 				//DisableBlockIfQueueFull: true,
@@ -174,7 +180,9 @@ func producerPreInit(t []string) {
 				BatchingMaxMessages:             100,
 				PartitionsAutoDiscoveryInterval: time.Second * 86400 * 5,
 			})
-			producerQue.Que.Set(codeStr, p)
+			if err == nil && p != nil {
+				producerQue.Que.Set(codeStr, p)
+			}
 		}
 	}
 }

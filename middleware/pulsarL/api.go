@@ -3,6 +3,7 @@ package pulsarL
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/apache/pulsar-client-go/pulsar/log"
 	"github.com/flyerxp/lib/app"
@@ -13,6 +14,7 @@ import (
 	cmap "github.com/orcaman/concurrent-map/v2"
 	"go.uber.org/zap"
 	"strings"
+	"time"
 )
 
 // Pulsar 容器
@@ -87,18 +89,23 @@ func GetEngine(name string, ctx context.Context) (*PulsarClient, error) {
 		return objPulsar, nil
 	}
 	logger.AddError(zap.Error(errors.New("no find Pulsar config " + name)))
-	return nil, errors.New("no find Pulsar config " + name)
+	logger.WriteErr()
+	panic(fmt.Sprintf("no find Pulsar config %s", name))
 }
 
 // https://github.com/golang-migrate/migrate/blob/master/database/Pulsar/README.md
 
 func newClient(o config2.MidPulsarConf) *PulsarClient {
 	client, err := pulsar.NewClient(pulsar.ClientOptions{
-		URL:    "pulsar://" + strings.Join(o.Address, ","),
-		Logger: log.NewLoggerWithLogrus(getLog()),
+		URL:               "pulsar://" + strings.Join(o.Address, ","),
+		Logger:            log.NewLoggerWithLogrus(getLog()),
+		ConnectionTimeout: time.Second * 1,
+		OperationTimeout:  time.Second,
 	})
+
 	if err != nil {
 		logger.AddError(zap.Error(err))
+		logger.WriteErr()
 	}
 	return &PulsarClient{client}
 }
