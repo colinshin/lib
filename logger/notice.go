@@ -176,15 +176,16 @@ func getNoticeLog() {
 			noticeLog.noticeMetrics.Notice[0] = zap.Namespace("notice")
 			noticeLog.noticeMetrics.TotalExecTime = 0
 		}})
-		_ = app.RegisterFunc("logger", "sync logger", func() {
-			e := noticeLog.ZapLog.Sync()
-			if e != nil {
-				log.Println(e)
-			}
-		})
+		if len(cfg.OutputPaths) > 0 {
+			_ = app.RegisterFunc("logger", "sync logger", func() {
+				e := noticeLog.ZapLog.Sync()
+				if e != nil {
+					log.Println(e)
+				}
+			})
+		}
 	})
 }
-
 func addMiddleExecTime(m *MiddleExec, t int) {
 	m.Count += 1
 	m.TotalExecTime += t

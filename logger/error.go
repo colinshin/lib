@@ -47,11 +47,13 @@ func getErrorLog() {
 			errLogV.errMetrics.Error = make([]zap.Field, 1, 10)
 			errLogV.errMetrics.Error[0] = zap.Namespace("error")
 		}})
-		_ = app.RegisterFunc("errLog", "errLog sync", func() {
-			e := errLogV.ZapLog.Sync()
-			if e != nil {
-				log.Println(e)
-			}
-		})
+		if len(cfg.OutputPaths) > 0 {
+			_ = app.RegisterFunc("errLog", "errLog sync", func() {
+				e := errLogV.ZapLog.Sync()
+				if e != nil {
+					log.Println(e)
+				}
+			})
+		}
 	})
 }

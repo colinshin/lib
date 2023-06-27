@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -63,18 +64,23 @@ func RegisterReset(F Event) {
 	resetEvent = append(resetEvent, F)
 }
 func GetPath(paths []string, vtype string) []string {
-	pathNew := make([]string, len(paths))
-	copy(pathNew, paths)
-	for i := range pathNew {
-		if pathNew[i] != "" && pathNew[i] != "stdout" && pathNew[i] != "stderr" && strings.Contains(pathNew[i], "/") {
-			pathTmp := filepath.Dir(pathNew[i])
+	pathNew := make([]string, 0, len(paths))
+	//copy(pathNew, paths)
+	for i := range paths {
+		if (paths[i] == "stdout" || paths[i] == "stderr") && runtime.GOOS == "windows" {
+			continue
+		}
+		if paths[i] != "" && paths[i] != "stdout" && paths[i] != "stderr" && strings.Contains(paths[i], "/") {
+			pathTmp := filepath.Dir(paths[i])
 			_, err := os.Stat(pathTmp)
 			if os.IsNotExist(err) {
 				_ = os.MkdirAll(pathTmp, os.ModePerm)
 			}
-			pathNew[i] += fmt.Sprintf("_%s_%02d_%d.log", vtype, time.Now().Month(), time.Now().Day())
+			fmt.Println("怎么回事")
+			pathNew = append(pathNew, paths[i]+fmt.Sprintf("_%s_%02d_%d.log", vtype, time.Now().Month(), time.Now().Day()))
 		}
 	}
+	fmt.Println(pathNew, paths)
 	return pathNew
 }
 func WriteLine() {

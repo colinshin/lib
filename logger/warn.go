@@ -47,11 +47,13 @@ func getWarnLog() {
 			warnLogV.warnMetrics.Warn = make([]zap.Field, 1, 10)
 			warnLogV.warnMetrics.Warn[0] = zap.Namespace("warn")
 		}})
-		_ = app.RegisterFunc("warnLog", "errLog sync", func() {
-			e := warnLogV.ZapLog.Sync()
-			if e != nil {
-				log.Println(e)
-			}
-		})
+		if len(cfg.OutputPaths) > 0 {
+			_ = app.RegisterFunc("warnLog", "errLog sync", func() {
+				e := warnLogV.ZapLog.Sync()
+				if e != nil {
+					log.Println(e)
+				}
+			})
+		}
 	})
 }
