@@ -76,7 +76,6 @@ func GetPath(paths []string, vtype string) []string {
 			if os.IsNotExist(err) {
 				_ = os.MkdirAll(pathTmp, os.ModePerm)
 			}
-			fmt.Println("怎么回事")
 			pathNew = append(pathNew, paths[i]+fmt.Sprintf("_%s_%02d_%d.log", vtype, time.Now().Month(), time.Now().Day()))
 		}
 	}
