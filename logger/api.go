@@ -79,7 +79,6 @@ func GetPath(paths []string, vtype string) []string {
 			pathNew = append(pathNew, paths[i]+fmt.Sprintf("_%s_%02d_%d.log", vtype, time.Now().Month(), time.Now().Day()))
 		}
 	}
-	fmt.Println(pathNew, paths)
 	return pathNew
 }
 func WriteLine() {
