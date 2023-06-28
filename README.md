@@ -35,7 +35,7 @@
   import (
         "strings"	     
         "fmt"
-        myjson "github.com/flyerxp/lib/utils/yaml"
+        myjson "github.com/flyerxp/lib/utils/json"
      )
      func main(){
        tmp := map[string]string{
