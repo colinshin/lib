@@ -1,10 +1,8 @@
 package logger
 
 import (
-	"context"
 	"errors"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
-	"github.com/flyerxp/lib/app"
 	"github.com/flyerxp/lib/logger"
 	hertzzap "github.com/hertz-contrib/logger/zap"
 	"go.uber.org/zap"
@@ -87,8 +85,12 @@ func Test2Encode(t *testing.T) {
 
 }
 func TestSync(t *testing.T) {
-	defer app.Shutdown(context.Background())
+	//在
+	//defer app.Shutdown(context.Background())
 	logger.AddError(zap.Error(errors.New("aaaaaaaa")))
 	logger.AddWarn(zap.Error(errors.New("bbbbb")))
+	logger.AddNotice(zap.String("a", "bbbbbbbbbbbb"))
 	logger.WriteLine()
+	//logger.WriteErr()  //立即写入错误
+
 }
