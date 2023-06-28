@@ -85,6 +85,20 @@
   fmt.Println(string(defaultConfig))
   }*/
   ```
+* Logger使用
+
+  go.uber.org/zap 使用此lib记录日志
+
+  ```Go
+  package main
+  /*
+  	logger.AddError(zap.Error(errors.New("aaaaaaaa")))
+	logger.AddWarn(zap.Error(errors.New("bbbbb")))
+	logger.AddNotice(zap.String("a", "bbbbbbbbbbbb"))
+	logger.WriteLine()
+	//logger.WriteErr()  //立即写入错误
+  */
+  ```
 
 * 中间件使用
 
