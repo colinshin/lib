@@ -30,11 +30,12 @@
 ===
 * Json工具包使用
   ```Go
-     package main
-     import (
-	        myjson "github.com/flyerxp/lib/utils/json"
-	        "strings"	     
-            "fmt"
+  package main
+  /*
+  import (
+        "strings"	     
+        "fmt"
+        myjson "github.com/flyerxp/lib/utils/yaml"
      )
      func main(){
        tmp := map[string]string{
@@ -42,10 +43,84 @@
        }
        r,e:=myjson.Encode(tmp)
        fmt.Println(string(r),e)
-     }
+  } */
   ```
-* Yaml工具包使用
+  * Yaml工具包使用
+    ```Go
+    package main
+    import (
+      "fmt"
+      myyml "github.com/flyerxp/lib/utils/yaml"
+    )  
 
+    func main() {
+        var defaultConfig = []byte(`
+        a: b
+        `)
+    tmp := map[string]string{}
+    //myyml.DecodeByFile("app.yml", &tmp)
+    myyml.DecodeByBytes(defaultConfig, tmp)
+    fmt.Println(string(defaultConfig))
+    }
+  ```
+
+  * 中间件使用
+
+    ```Go
+    package main
+    
+      import (
+      "context"
+      "fmt"
+      "github.com/flyerxp/lib/app"
+      "github.com/flyerxp/lib/middleware/mysqlL"
+      "github.com/flyerxp/lib/middleware/pulsarL"
+      "github.com/flyerxp/lib/middleware/redisL"
+      "time"
+      )
+    
+      type tmp struct {
+      Id int
+      }
+    
+      func main() {
+          //time.Sleep(time.Second * 1)
+          defer app.Shutdown(context.Background())
+          start := time.Now()
+          count := 10000
+          ctx := context.Background()
+          objRedis, _ := redisL.GetEngine("pubRedis", ctx)
+          tmp2 := new(tmp)
+          fmt.Println("github.com/flyerxp")
+          fmt.Println("win11 环境，开始了 ")
+          for i := 0; i <= count; i++ {
+          objRedis.Get(context.Background(), "a")
+          }
+          fmt.Printf("redis 读取 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
+          start = time.Now()
+          mysql, _ := mysqlL.GetEngine("pubMysql", context.Background())
+          for i := 0; i <= count; i++ {
+          err := mysql.GetDb().Get(tmp2, `select id from config_info limit 1`)
+          if err != nil {
+          fmt.Println(tmp2, err)
+          }
+          }
+          fmt.Printf("mysql 数据库读取 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
+          start = time.Now()
+          for i := 0; i <= count; i++ {
+          pulsarL.Producer(&pulsarL.OutMessage{
+          Topic:      0,
+          TopicStr:   "test",
+          Content:    "太牛了",
+          Properties: map[string]string{"a": "b"},
+          Delay:      0,
+          }, ctx)
+          }
+          fmt.Printf("pulsar 发消息 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
+      }
+
+    ```
+  
 
 
 
