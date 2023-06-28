@@ -79,14 +79,14 @@ func Producer(o *OutMessage, ctx context.Context) error {
 	p, ok = producerQue.Que.Get(codeStr)
 	if !ok {
 		//官方此处存在性能问题,协程下直接卡死
-		//，目前无解,NewRequestID
+		//，NewRequestID
 		p, e = pClient.CurrPulsar.CreateProducer(pulsar.ProducerOptions{
 			Topic:              codeStr,
 			ProducerAccessMode: pulsar.ProducerAccessModeShared,
 			//DisableBlockIfQueueFull: true,
 			BatchingMaxSize:                 1048576, //1M
-			SendTimeout:                     time.Second * 2,
-			BatchingMaxPublishDelay:         2 * time.Second,
+			SendTimeout:                     time.Second * 5,
+			BatchingMaxPublishDelay:         2000 * time.Millisecond,
 			BatchingMaxMessages:             100,
 			PartitionsAutoDiscoveryInterval: time.Second * 86400 * 5,
 		})
@@ -166,8 +166,11 @@ func producerPreInit(t []string) {
 	var err error
 	for _, codeStr := range t {
 		objTopic, ok := getTopic(codeStr)
+		if !ok {
+			logger.AddError(zap.Error(errors.New("topic no find " + codeStr)))
+			return
+		}
 		pClient, _ := GetEngine(objTopic.Cluster, context.Background())
-
 		p, ok = producerQue.Que.Get(codeStr)
 		if !ok {
 			//官方此处存在性能问题
@@ -177,7 +180,7 @@ func producerPreInit(t []string) {
 				//DisableBlockIfQueueFull: true,
 				BatchingMaxSize:                 1048576, //1M
 				SendTimeout:                     time.Second * 5,
-				BatchingMaxPublishDelay:         2 * time.Second,
+				BatchingMaxPublishDelay:         2000 * time.Millisecond,
 				BatchingMaxMessages:             100,
 				PartitionsAutoDiscoveryInterval: time.Second * 86400 * 5,
 			})
@@ -186,15 +189,12 @@ func producerPreInit(t []string) {
 			}
 		}
 	}
+
 }
 func Flush() {
 	if producerQue != nil {
 		producerQue.Wg.Wait()
-		//a, f, l, c := runtime.Caller(1)
-		//fmt.Println(a, f, l, c)
-		//fmt.Println("i run i run i run")
 		for _, v := range producerQue.Que.Items() {
-			//fmt.Println(v.LastSequenceID(), "=======================", v.Topic())
 			if v.LastSequenceID() > 0 {
 				e := v.Flush()
 				if e != nil {

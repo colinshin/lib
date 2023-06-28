@@ -6,7 +6,7 @@
 
   GO_ENV 作为读取配置文件的目录，例如 值为test ,则读取配置文件 /conf/test/app.yml
 
-  HOSTS:  127.0.0.1 nacosconf nacosconfredis pubmysql pubpulsar
+  HOSTS:  127.0.0.1 nacosconf nacosconfredis pubmysql pubpulsar pubredis
 
 * 配置文件
     * 默认的配置放在

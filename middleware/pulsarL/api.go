@@ -102,7 +102,6 @@ func newClient(o config2.MidPulsarConf) *PulsarClient {
 		ConnectionTimeout: time.Second * 1,
 		OperationTimeout:  time.Second,
 	})
-
 	if err != nil {
 		logger.AddError(zap.Error(err))
 		logger.WriteErr()

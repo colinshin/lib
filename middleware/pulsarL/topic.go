@@ -50,8 +50,10 @@ var topicConf TopicConfS
 var topicOnce sync.Once
 
 func init() {
-	go initTopic()
-	go ProducerPre() //预载
+	go func() {
+		initTopic()
+		ProducerPre()
+	}()
 }
 
 func getTopic(code any) (*TopicS, bool) {
@@ -103,6 +105,15 @@ func topicDistributionF() (TopicConfS, error) {
 	topicConfTmp := TopicConfS{}
 	topicConfTmp.TopicDistribution = make(map[int]string)
 	topicConfTmp.Topic = make(map[string]TopicS)
+	if getConfFile() == nil {
+		tmpConf := new(yamlTopic)
+		err := yaml.DecodeByFile(config.GetConfFile("pulsar.yml"), tmpConf)
+		if err != nil {
+			logger.AddError(zap.String("pusal topic error", "pulsar.yml read error"), zap.Error(err))
+			//return topicConfTmp, nil
+		}
+		getTopicConfig(&topicConfTmp, tmpConf)
+	}
 	conf := config.GetConf().TopicNacos
 	for _, v := range conf {
 		n, e := nacos.GetEngine(v.Name, context.Background())
@@ -120,19 +131,10 @@ func topicDistributionF() (TopicConfS, error) {
 				}
 			} else {
 				logger.AddError(zap.Error(e))
+				logger.WriteErr()
 				return topicConfTmp, e
 			}
 		}
-	}
-	if getConfFile() == nil {
-		tmpConf := new(yamlTopic)
-		err := yaml.DecodeByFile(config.GetConfFile("pulsar.yml"), tmpConf)
-
-		if err != nil {
-			logger.AddError(zap.String("pusal topic error", "pulsar.yml read error"), zap.Error(err))
-			return topicConfTmp, nil
-		}
-		getTopicConfig(&topicConfTmp, tmpConf)
 	}
 	return topicConfTmp, nil
 }

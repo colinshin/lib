@@ -118,7 +118,7 @@ app:
 redis:
 -
   name: pubRedis
-  address: [ "pubRedis:6379" ]
+  address: [ "pubredis:6379" ]
   user:
   pwd:
   master:
