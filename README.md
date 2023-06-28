@@ -45,31 +45,33 @@
        fmt.Println(string(r),e)
   } */
   ```
-  * Yaml工具包使用
-    ```Go
-    package main
-    import (
-      "fmt"
-      myyml "github.com/flyerxp/lib/utils/yaml"
-    )  
+* Yaml工具包使用
 
-    func main() {
-        var defaultConfig = []byte(`
-        a: b
-        `)
-    tmp := map[string]string{}
-    //myyml.DecodeByFile("app.yml", &tmp)
-    myyml.DecodeByBytes(defaultConfig, tmp)
-    fmt.Println(string(defaultConfig))
-    }
+  ```Go
+  package main
+  /*
+  import (
+    "fmt"
+    myyml "github.com/flyerxp/lib/utils/yaml"
+  )  
+
+  func main() {
+      var defaultConfig = []byte(`
+      a: b
+      `)
+  tmp := map[string]string{}
+  //myyml.DecodeByFile("app.yml", &tmp)
+  myyml.DecodeByBytes(defaultConfig, tmp)
+  fmt.Println(string(defaultConfig))
+  }*/
   ```
 
-  * 中间件使用
+* 中间件使用
 
     ```Go
     package main
-    
-      import (
+    /*
+    import (
       "context"
       "fmt"
       "github.com/flyerxp/lib/app"
@@ -77,11 +79,11 @@
       "github.com/flyerxp/lib/middleware/pulsarL"
       "github.com/flyerxp/lib/middleware/redisL"
       "time"
-      )
+    )
     
-      type tmp struct {
+    type tmp struct {
       Id int
-      }
+    }
     
       func main() {
           //time.Sleep(time.Second * 1)
@@ -117,7 +119,7 @@
           }, ctx)
           }
           fmt.Printf("pulsar 发消息 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
-      }
+      }*/
 
     ```
   
