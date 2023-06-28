@@ -2,6 +2,26 @@
 
 使用方法
 ===
+* 依赖
+  
+  nacos 配置中心，配置中心的数据，会在redis生成缓存，更新后，需要清理缓存，参考示例 nacos [监听事件订阅](https://github.com/nacos-group/nacos-sdk-go/blob/master/README_CN.md),订阅到事件后，删除缓存
+  
+  Lib 对外提供删除key的方法
+ 
+  ```Go
+  package main
+  /*
+  client, e := nacos.GetEngine("nacosConf", context.Background())
+				if e != nil {
+					logger.AddError(zap.Error(e))
+				}
+				key := client.DeleteCache(context.Background(), dataId, group, syncConf.Ns)
+  */
+  ```
+
+  redis 缓存
+  
+
 * 环境变量
 
   GO_ENV 作为读取配置文件的目录，例如 值为test ,则读取配置文件 /conf/test/app.yml
@@ -122,6 +142,7 @@
       }*/
 
     ```
+    
   
 
 
