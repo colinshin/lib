@@ -178,10 +178,7 @@ func getNoticeLog() {
 		}})
 		if len(cfg.OutputPaths) > 0 {
 			_ = app.RegisterFunc("logger", "sync logger", func() {
-				e := noticeLog.ZapLog.Sync()
-				if e != nil {
-					log.Println(e)
-				}
+				_ = noticeLog.ZapLog.Sync()
 			})
 		}
 	})

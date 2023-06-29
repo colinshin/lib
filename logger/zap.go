@@ -6,7 +6,6 @@ import (
 	config2 "github.com/flyerxp/lib/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"log"
 )
 
 // zap log 日志通用格式
@@ -47,10 +46,7 @@ func AccessLog() {
 	}})
 	if len(cfg.OutputPaths) > 0 {
 		_ = app.RegisterFunc("accLog", "accLog sync", func() {
-			e := warnLogV.ZapLog.Sync()
-			if e != nil {
-				log.Println(e)
-			}
+			_ = AccessLogV.Sync()
 		})
 	}
 }

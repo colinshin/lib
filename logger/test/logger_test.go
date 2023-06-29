@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
+	"github.com/flyerxp/lib/app"
 	"github.com/flyerxp/lib/logger"
 	hertzzap "github.com/hertz-contrib/logger/zap"
 	"go.uber.org/zap"
@@ -11,6 +12,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
 	"testing"
+	"time"
 )
 
 func TestEncode(t *testing.T) {
@@ -88,11 +90,15 @@ func Test2Encode(t *testing.T) {
 func TestSync(t *testing.T) {
 	//在
 	//defer app.Shutdown(context.Background())
-	logger.AddError(zap.Error(errors.New("aaaaaaaa")))
-	logger.AddWarn(zap.Error(errors.New("bbbbb")))
+	//logger.AddError(zap.Error(errors.New("aaaaaaaa")))
+	//logger.AddWarn(zap.Error(errors.New("bbbbb")))
 	logger.AddNotice(zap.String("a", "bbbbbbbbbbbb"))
 	logger.WriteLine()
-	logger.WriteAccess(context.Background(), "xxx bbbb cccc")
+	logger.WriteAccess(context.Background(), "aaaa")
+	//logger.WriteAccess(context.Background(), "xxx bbbb cccc")
+	time.Sleep(time.Second)
+
+	app.Shutdown(context.Background())
 	//logger.WriteErr()  //立即写入错误
 
 }

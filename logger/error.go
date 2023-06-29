@@ -49,10 +49,7 @@ func getErrorLog() {
 		}})
 		if len(cfg.OutputPaths) > 0 {
 			_ = app.RegisterFunc("errLog", "errLog sync", func() {
-				e := errLogV.ZapLog.Sync()
-				if e != nil {
-					log.Println(e)
-				}
+				_ = errLogV.ZapLog.Sync()
 			})
 		}
 	})

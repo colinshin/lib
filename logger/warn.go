@@ -49,10 +49,7 @@ func getWarnLog() {
 		}})
 		if len(cfg.OutputPaths) > 0 {
 			_ = app.RegisterFunc("warnLog", "errLog sync", func() {
-				e := warnLogV.ZapLog.Sync()
-				if e != nil {
-					log.Println(e)
-				}
+				_ = warnLogV.ZapLog.Sync()
 			})
 		}
 	})
