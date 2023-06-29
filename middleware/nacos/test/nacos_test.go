@@ -15,4 +15,16 @@ func TestConf(t *testing.T) {
 	zk := new(config.ZookeeperConf)
 	_ = yaml.DecodeByBytes(r, zk)
 	fmt.Println(zk, e)
+	/*a.PutService(context.Background(), nacos.ServiceRequest{
+		Ip:          "127.0.0.1",
+		Port:        8888,
+		ClusterName: "cTest",
+		ServiceName: "sTest",
+		GroupName:   "gTest",
+		NamespaceId: "62c3bcf9-7948-4c26-a353-cebc0a7c9712",
+		Healthy:     true,
+		Weight:      0,
+		Metadata:    map[string]string{"call": "bbb"},
+	})*/
+
 }

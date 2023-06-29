@@ -99,13 +99,3 @@ topicNacos:
   did: topic
   group: topic
   ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
-hertz:
-  address: :1081
-  enable_pprof: true
-  enable_gzip: true
-  enable_access_log: true
-  log_level: info
-  log_file_name: log/hertz.log
-  log_max_size: 10
-  log_max_age: 3
-  log_max_backups: 51

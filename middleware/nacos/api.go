@@ -73,7 +73,10 @@ func (n *Client) getDataFromCache(cacheKey string) (*redis.StringCmd, error) {
 	rv := redisClient.Get(n.Context, cacheKey)
 	return rv, nil
 }
-
+func (n *Client) DelToken(ctx context.Context) {
+	key := n.GetKey("/v1/auth/login")
+	redisClient.Del(ctx, key)
+}
 func (n *Client) GetToken(ctx context.Context) (*AccessToken, error) {
 	if n.Token != nil && n.Token.Expiration > time.Now().Unix() {
 		return n.Token, nil
@@ -161,3 +164,47 @@ func (n *Client) GetConfig(ctx context.Context, did string, gp string, ns string
 		return []byte{}, bErr
 	}
 }
+
+/*
+type ServiceRequest struct {
+	Ip          string            `json:"ip"`
+	Port        int               `json:"port"`
+	ClusterName string            `json:"cluster_name"`
+	ServiceName string            `json:"service_name"`
+	GroupName   string            `json:"group_name"`
+	NamespaceId string            `json:"namespace_id"`
+	Healthy     bool              `json:"healthy"`
+	Weight      int               `json:"weight"`
+	Enabled     bool              `json:"enabled"`
+	Metadata    map[string]string `json:"metadata"`
+	Ephemeral   bool              `json:"ephemeral"`
+}
+
+func (n *Client) PutService(ctx context.Context, request ServiceRequest) ([]byte, error) {
+	start := time.Now()
+	if request.Ip == "" || request.NamespaceId == "" || request.Port == 0 || request.ClusterName == "" || request.GroupName == "" || request.ServiceName == "" {
+		return []byte{}, errors.New("参数错误")
+	}
+	//n.DelToken(ctx)
+	token, errToken := n.GetToken(ctx)
+	if errToken != nil {
+		logger.AddNacosTime(int(time.Since(start).Milliseconds()))
+		logger.AddError(zap.Error(errToken))
+		return []byte{}, errToken
+	}
+	fmt.Println(token.AccessToken)
+	//接口报错，返回空
+	s := logger.StartTime("nacos-put-service")
+	hc := n.HttpPool.Get().(*httpClient)
+	v, _ := query.Values(request)
+	postData := v.Encode() + "&accessToken=" + token.AccessToken + "&tenant=" + request.NamespaceId
+	fmt.Println(postData)
+	fmt.Println(n.getUrl("/v1/ns/instance"))
+	r, bErr := hc.SendRequest("POST", n.getUrl("/v1/ns/instance?"+postData), postData, time.Second*10, 3)
+	fmt.Println(bErr)
+	n.HttpPool.Put(hc)
+	s.Stop()
+	logger.AddNacosTime(int(time.Since(start).Milliseconds()))
+	return r, bErr
+}
+*/
