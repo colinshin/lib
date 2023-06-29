@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"errors"
 	"github.com/cloudwego/hertz/pkg/common/hlog"
 	"github.com/flyerxp/lib/logger"
@@ -91,6 +92,7 @@ func TestSync(t *testing.T) {
 	logger.AddWarn(zap.Error(errors.New("bbbbb")))
 	logger.AddNotice(zap.String("a", "bbbbbbbbbbbb"))
 	logger.WriteLine()
+	logger.WriteAccess(context.Background(), "xxx bbbb cccc")
 	//logger.WriteErr()  //立即写入错误
 
 }

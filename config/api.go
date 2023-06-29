@@ -30,6 +30,7 @@ type Config struct {
 		Name        string    `yaml:"name" json:"name"`
 		Type        string    `yaml:"type" json:"type"`
 		Logger      zapConfig `yaml:"logger" json:"logger"`
+		Port        string    `yaml:"port" json:"port"`
 		ErrLog      zapConfig `yaml:"errlog" json:"errlog"`
 		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
@@ -77,6 +78,7 @@ env: test
 app:
   name: Webhook
   type: web
+  port: 8888
   logger:
     level: debug
     encoding: json

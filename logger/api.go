@@ -5,7 +5,6 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -65,18 +64,16 @@ func RegisterReset(F Event) {
 }
 func GetPath(paths []string, vtype string) []string {
 	pathNew := make([]string, 0, len(paths))
-	//copy(pathNew, paths)
 	for i := range paths {
-		if (paths[i] == "stdout" || paths[i] == "stderr") && runtime.GOOS == "windows" {
-			continue
-		}
-		if paths[i] != "" && paths[i] != "stdout" && paths[i] != "stderr" && strings.Contains(paths[i], "/") {
+		if strings.Contains(paths[i], "/") {
 			pathTmp := filepath.Dir(paths[i])
 			_, err := os.Stat(pathTmp)
 			if os.IsNotExist(err) {
 				_ = os.MkdirAll(pathTmp, os.ModePerm)
 			}
 			pathNew = append(pathNew, paths[i]+fmt.Sprintf("_%s_%02d_%d.log", vtype, time.Now().Month(), time.Now().Day()))
+		} else {
+			pathNew = append(pathNew, paths[i])
 		}
 	}
 	return pathNew
