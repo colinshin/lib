@@ -92,6 +92,7 @@ func TestSync(t *testing.T) {
 	//defer app.Shutdown(context.Background())
 	//logger.AddError(zap.Error(errors.New("aaaaaaaa")))
 	//logger.AddWarn(zap.Error(errors.New("bbbbb")))
+	logger.SetLogId("aaaaaaaaaaaaaaaaaaaaaaaa")
 	logger.AddNotice(zap.String("a", "bbbbbbbbbbbb"))
 	logger.WriteLine()
 	logger.WriteAccess(context.Background(), "aaaa")

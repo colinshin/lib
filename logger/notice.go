@@ -18,6 +18,7 @@ type AppLog struct {
 	once          sync.Once
 	noticeMetrics noticeMetrics
 	execMetrics   eTimeMetrics
+	LogId         string
 	isInitEd      bool
 }
 

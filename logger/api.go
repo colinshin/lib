@@ -82,18 +82,18 @@ func WriteLine() {
 	if !noticeLog.isInitEd {
 		getNoticeLog()
 	}
-	noticeLog.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(zap.Object("execTime", noticeLog.execMetrics)).With(noticeLog.noticeMetrics.Notice...).Info("info")
+	noticeLog.ZapLog.With(zap.String("logid", noticeLog.LogId)).With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(zap.Object("execTime", noticeLog.execMetrics)).With(noticeLog.noticeMetrics.Notice...).Info("info")
 	if len(errLogV.errMetrics.Error) > 1 {
 		if !errLogV.isInitEd {
 			getErrorLog()
 		}
-		errLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(errLogV.errMetrics.Error...).WithOptions(zap.AddCallerSkip(1)).Error("error")
+		errLogV.ZapLog.With(zap.String("logid", noticeLog.LogId)).With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(errLogV.errMetrics.Error...).WithOptions(zap.AddCallerSkip(1)).Error("error")
 	}
 	if len(warnLogV.warnMetrics.Warn) > 1 {
 		if !warnLogV.isInitEd {
 			getWarnLog()
 		}
-		warnLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(warnLogV.warnMetrics.Warn...).WithOptions(zap.AddCallerSkip(1)).Warn("warn")
+		warnLogV.ZapLog.With(zap.String("logid", noticeLog.LogId)).With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(warnLogV.warnMetrics.Warn...).WithOptions(zap.AddCallerSkip(1)).Warn("warn")
 	}
 	//第二天重置
 	if CurrDay != time.Now().Day() {
@@ -114,7 +114,7 @@ func WriteErr() {
 		if !errLogV.isInitEd {
 			getErrorLog()
 		}
-		errLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(errLogV.errMetrics.Error...).WithOptions(zap.AddCallerSkip(1)).Error("error")
+		errLogV.ZapLog.With(zap.String("logid", noticeLog.LogId)).With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(zap.Object("middle", noticeLog.noticeMetrics.Middle)).With(errLogV.errMetrics.Error...).WithOptions(zap.AddCallerSkip(1)).Error("error")
 		errLogV.errMetrics.Error = make([]zap.Field, 1, 10)
 		errLogV.errMetrics.Error[0] = zap.Namespace("error")
 	}
@@ -122,13 +122,15 @@ func WriteErr() {
 		if !warnLogV.isInitEd {
 			getWarnLog()
 		}
-		warnLogV.ZapLog.With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(warnLogV.warnMetrics.Warn...).WithOptions(zap.AddCallerSkip(1)).Warn("warn")
+		warnLogV.ZapLog.With(zap.String("logid", noticeLog.LogId)).With(zap.Int("execTotalTime", noticeLog.noticeMetrics.TotalExecTime)).With(warnLogV.warnMetrics.Warn...).WithOptions(zap.AddCallerSkip(1)).Warn("warn")
 		warnLogV.warnMetrics.Warn = make([]zap.Field, 1, 10)
 		warnLogV.warnMetrics.Warn[0] = zap.Namespace("warn")
 	}
 	Reset()
 }
-
+func SetLogId(id string) {
+	noticeLog.LogId = id
+}
 func Reset() {
 	for _, f := range resetEvent {
 		f.F()
