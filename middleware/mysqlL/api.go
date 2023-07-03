@@ -163,7 +163,9 @@ func (m *MysqlClient) PutDb(a *sqlx.DB) {
 }
 func (m *SqlContainer) Reset() {
 	for _, v := range MysqlEngine.SqlContainer.Items() {
-		_ = v.CurrDb.Close()
+		if v.CurrDb != nil {
+			_ = v.CurrDb.Close()
+		}
 	}
 	MysqlEngine = nil
 }
