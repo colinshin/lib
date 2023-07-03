@@ -19,7 +19,7 @@ func TestConf(t *testing.T) {
 	r, _ := redisL.GetEngine("pubRedis", context.Background())
 
 	l := logger.StartTime("redis-read")
-	r.Get(context.Background(), "aaaa")
+	r.C.Get(context.Background(), "aaaa")
 	l.Stop()
 	l2 := logger.StartTime("redis-read")
 	//time.Sleep(time.Second)

@@ -15,18 +15,22 @@ import (
 )
 
 type redisClient struct {
-	RedisClient cmap.ConcurrentMap[string, redis.UniversalClient]
+	RedisClient cmap.ConcurrentMap[string, *RedisC]
 	RedisConf   cmap.ConcurrentMap[string, config2.MidRedisConf]
 }
 
 var RedisEngine *redisClient
 
-func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) {
+type RedisC struct {
+	C redis.UniversalClient
+}
+
+func GetEngine(name string, ctx context.Context) (*RedisC, error) {
 	if RedisEngine == nil {
 		RedisEngine = new(redisClient)
 		var confList []config2.MidRedisConf
 		RedisEngine.RedisConf = cmap.New[config2.MidRedisConf]()
-		RedisEngine.RedisClient = cmap.New[redis.UniversalClient]()
+		RedisEngine.RedisClient = cmap.New[*RedisC]()
 		conf := config2.GetConf()
 		confList = conf.Redis
 		//本地文件中获取
@@ -75,15 +79,17 @@ func GetEngine(name string, ctx context.Context) (redis.UniversalClient, error) 
 			MaxIdleConns: 30,
 		})
 		objRedis.AddHook(HookLog{})
-		RedisEngine.RedisClient.Set(name, objRedis)
-		return objRedis, nil
+		objRedisC := new(RedisC)
+		objRedisC.C = objRedis
+		RedisEngine.RedisClient.Set(name, objRedisC)
+		return objRedisC, nil
 	}
 	logger.AddError(zap.Error(errors.New("no find redis config " + name)))
 	return nil, errors.New("no find redis config " + name)
 }
 func (r *redisClient) Reset() {
 	for _, v := range RedisEngine.RedisClient.Items() {
-		_ = v.Close()
+		_ = v.C.Close()
 	}
 	RedisEngine = nil
 }
