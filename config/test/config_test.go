@@ -7,5 +7,5 @@ import (
 )
 
 func TestConf(t *testing.T) {
-	fmt.Println(config.GetConf().App)
+	fmt.Println(config.GetConf().ElasticNacos)
 }

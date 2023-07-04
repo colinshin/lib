@@ -33,15 +33,17 @@ type Config struct {
 		ErrLog      zapConfig `yaml:"errlog" json:"errlog"`
 		ConfStorage bool      `yaml:"confStorage" json:"confStorage"`
 	}
-	Hertz       Hertz           `yaml:"hertz" json:"hertz"`
-	Redis       []MidRedisConf  `yaml:"redis" json:"redis"`
-	RedisNacos  NacosConf       `yaml:"redisNacos" json:"redisNacos"`
-	Mysql       []MidMysqlConf  `yaml:"mysql" json:"mysql"`
-	MysqlNacos  NacosConf       `yaml:"mysqlNacos" json:"mysqlNacos"`
-	Pulsar      []MidPulsarConf `yaml:"pulsar" json:"pulsar"`
-	PulsarNacos NacosConf       `yaml:"pulsarNacos" json:"pulsarNacos"`
-	Nacos       []MidNacos      `yaml:"nacos" json:"nacos"`
-	TopicNacos  []NacosConf     `yaml:"topicNacos"`
+	Hertz        Hertz           `yaml:"hertz" json:"hertz"`
+	Redis        []MidRedisConf  `yaml:"redis" json:"redis"`
+	RedisNacos   NacosConf       `yaml:"redisNacos" json:"redisNacos"`
+	Mysql        []MidMysqlConf  `yaml:"mysql" json:"mysql"`
+	MysqlNacos   NacosConf       `yaml:"mysqlNacos" json:"mysqlNacos"`
+	Pulsar       []MidPulsarConf `yaml:"pulsar" json:"pulsar"`
+	PulsarNacos  NacosConf       `yaml:"pulsarNacos" json:"pulsarNacos"`
+	Nacos        []MidNacos      `yaml:"nacos" json:"nacos"`
+	TopicNacos   []NacosConf     `yaml:"topicNacos"`
+	Elastic      []MidEsConf     `yaml:"elastic" json:"elastic"`
+	ElasticNacos NacosConf       `yaml:"elasticNacos" json:"elasticNacos"`
 }
 
 func (c *Config) String() string {
@@ -166,7 +168,7 @@ topicNacos:
 nacos:
 -
   name: nacosConf
-  url: http://nacosconf:8848/nacos
+  url: http://nacosconf:8850/nacos
   contextPath: /nacos
   ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
   user: dev
@@ -177,6 +179,26 @@ nacos:
     address: [ "127.0.0.1:6379" ]
     user:
     pwd:
+elastic:
+-
+  name: pubEs
+  host: [ "pubEs:9200" ]
+  user:
+  pwd:
+  read_timeout: 600ms
+  conn_timeout: 80ms
+  default_max_window_result: 0
+  default_track_total_hits: 0
+  auto_detect: false
+  max_window_result:
+    test: 1000
+  track_total_hits:
+    test: 2000
+elasticNacos:
+  name: nacosConf
+  did: elastic
+  group: elastic
+  ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
 `)
 
 func initConf() {

@@ -63,9 +63,36 @@ type RedisConf struct {
 	Redis []MidRedisConf `yaml:"redis" json:"redis"`
 }
 
-type ElasticConf struct {
-	List []MidConf `yaml:"elastic" json:"elastic"`
-}
 type PulsarConf struct {
 	List []MidPulsarConf `yaml:"pulsar" json:"pulsar"`
+}
+
+type MidEsConf struct {
+	Name                   string         `yaml:"name" json:"name"`
+	Host                   []string       `yaml:"host" json:"host"`
+	User                   string         `yaml:"user" json:"user"`
+	Pwd                    string         `yaml:"pwd" json:"pwd"`
+	AutoDetect             bool           `yaml:"auto_detect" json:"auto_detect"`
+	MaxWindowResult        map[string]int `yaml:"max_window_result" json:"max_window_result"`
+	TrackTotalHits         map[string]int `yaml:"track_total_hits" json:"track_total_hits"`
+	DefaultMaxWindowResult int            `yaml:"default_max_window_result" json:"default_max_window_result"`
+	DefaultTrackTotalHits  int            `yaml:"default_track_total_hits" json:"default_track_total_hits"`
+	ReadTimeout            string         `yaml:"read_timeout" json:"read_timeout"`
+	WriteTimeout           string         `yaml:"write_timeout" json:"write_timeout"`
+	MaxIdleConn            string         `yaml:"max_idle_conn" json:"max_idle_conn"`
+	ConnTimeout            string         `yaml:"conn_timeout" json:"conn_timeout"`
+}
+
+type ElasticConf struct {
+	List []MidEsConf `yaml:"elastic" json:"elastic"`
+}
+
+func (m *MidEsConf) getMaxResult(index string) int {
+	if len(m.MaxWindowResult) == 0 {
+		return 0
+	}
+	if v, ok := m.MaxWindowResult[index]; ok {
+		return v
+	}
+	return 0
 }
