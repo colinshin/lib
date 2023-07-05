@@ -86,7 +86,7 @@ func Producer(o *OutMessage, ctx context.Context) error {
 			//DisableBlockIfQueueFull: true,
 			BatchingMaxSize:                 1048576, //1M
 			SendTimeout:                     time.Second * 5,
-			BatchingMaxPublishDelay:         2000 * time.Millisecond,
+			BatchingMaxPublishDelay:         1000 * time.Millisecond,
 			BatchingMaxMessages:             100,
 			PartitionsAutoDiscoveryInterval: time.Second * 86400 * 5,
 		})
