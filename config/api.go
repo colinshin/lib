@@ -183,8 +183,8 @@ elastic:
 -
   name: pubEs
   host: [ "pubEs:9200" ]
-  user:
-  pwd:
+  user: elastic
+  pwd: SLmOE+pJcwsxbFrf-rzh
   read_timeout: 600ms
   conn_timeout: 80ms
   default_max_window_result: 0
@@ -194,11 +194,11 @@ elastic:
     test: 1000
   track_total_hits:
     test: 2000
-elasticNacos:
-  name: nacosConf
-  did: elastic
-  group: elastic
-  ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
+#elasticNacos:
+#  name: nacosConf
+#  did: elastic
+#  group: elastic
+#  ns: 62c3bcf9-7948-4c26-a353-cebc0a7c9712
 `)
 
 func initConf() {
