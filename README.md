@@ -2,9 +2,7 @@
 
 简介
 ===
-目前本包支持了nacos,redis,mysql,elastic,pulsar 这些服务中间件，另外集成了常用的yaml,json,md5等工具
-
-协程ants ,这个东西使用简单，未作专门的集成。
+目前本包支持了nacos,redis,mysql,elastic,pulsar 这些服务中间件，另外集成了常用的yaml,json 等工具
 
 pulsar 比kafka更为强大，所以只集成了pulsar,不再集成kafka. 本包的pulsar 采用异步发送,发送耗时可以忽略不不计。
 
