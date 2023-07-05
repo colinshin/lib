@@ -89,7 +89,9 @@ func GetEngine(name string, ctx context.Context) (*RedisC, error) {
 }
 func (r *redisClient) Reset() {
 	for _, v := range RedisEngine.RedisClient.Items() {
-		_ = v.C.Close()
+		if v.C != nil {
+			_ = v.C.Close()
+		}
 	}
 	RedisEngine = nil
 }
