@@ -1,4 +1,13 @@
-# 整合Lib,避免重复造轮子
+# 整合Lib
+
+简介
+===
+目前本包支持了nacos,redis,mysql,elastic,pulsar 这些服务中间件，另外集成了常用的yaml,json,md5等工具
+协程ants ,这个东西使用简单，未作专门的集成。
+pulsar 比kafka更为强大，所以只集成了pulsar,不再集成kafka. 本包的pulsar 采用异步发送,发送耗时可以忽略不不计。
+pulsar 第一次创建producer会慢，可以把常用的topic写到pulsar的配置里，提前创建，消息每隔2秒后台发送一次,满100条发送1次,耗时无感知。
+app.shutdown() 需要程序推出时调用，会做收尾工作。
+elastic 简单易用，不需要很懂es,免去了拼一堆term的烦恼，已经能支持大部分查询场景
 
 使用方法
 ===
@@ -105,55 +114,68 @@
     ```Go
     package main
     /*
+
     import (
-      "context"
-      "fmt"
-      "github.com/flyerxp/lib/app"
-      "github.com/flyerxp/lib/middleware/mysqlL"
-      "github.com/flyerxp/lib/middleware/pulsarL"
-      "github.com/flyerxp/lib/middleware/redisL"
-      "time"
+        "context"
+        "fmt"
+        "github.com/flyerxp/lib/app"
+        "github.com/flyerxp/lib/middleware/elastic"
+        "github.com/flyerxp/lib/middleware/mysqlL"
+        "github.com/flyerxp/lib/middleware/pulsarL"
+        "github.com/flyerxp/lib/middleware/redisL"
+        "time"
     )
     
-    type tmp struct {
-      Id int
+    type TestStt struct {
+        Id int `json:"id"`
     }
     
-      func main() {
-          //time.Sleep(time.Second * 1)
-          defer app.Shutdown(context.Background())
-          start := time.Now()
-          count := 10000
-          ctx := context.Background()
-          objRedis, _ := redisL.GetEngine("pubRedis", ctx)
-          tmp2 := new(tmp)
-          fmt.Println("github.com/flyerxp")
-          fmt.Println("win11 环境，开始了 ")
-          for i := 0; i <= count; i++ {
-          objRedis.Get(context.Background(), "a")
-          }
-          fmt.Printf("redis 读取 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
-          start = time.Now()
-          mysql, _ := mysqlL.GetEngine("pubMysql", context.Background())
-          for i := 0; i <= count; i++ {
-          err := mysql.GetDb().Get(tmp2, `select id from config_info limit 1`)
-          if err != nil {
-          fmt.Println(tmp2, err)
-          }
-          }
-          fmt.Printf("mysql 数据库读取 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
-          start = time.Now()
-          for i := 0; i <= count; i++ {
-          pulsarL.Producer(&pulsarL.OutMessage{
-          Topic:      0,
-          TopicStr:   "test",
-          Content:    "太牛了",
-          Properties: map[string]string{"a": "b"},
-          Delay:      0,
-          }, ctx)
-          }
-          fmt.Printf("pulsar 发消息 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
-      }*/
+    func main() {
+        //time.Sleep(time.Second * 1)
+        defer app.Shutdown(context.Background())
+        start := time.Now()
+        count := 10000
+        ctx := context.Background()
+        objRedis, _ := redisL.GetEngine("pubRedis", ctx)
+        tmp2 := new(TestStt)
+        fmt.Println("github.com/flyerxp")
+        fmt.Println("win11 环境，开始了 ")
+        for i := 0; i <= count; i++ {
+            objRedis.C.Get(context.Background(), "a")
+        }
+        fmt.Printf("redis 读取 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
+        start = time.Now()
+        mysql, _ := mysqlL.GetEngine("pubMysql", context.Background())
+        for i := 0; i <= count; i++ {
+            err := mysql.GetDb().Get(tmp2, `select id from config_info limit 1`)
+            if err != nil {
+                fmt.Println(tmp2, err)
+            }
+        }
+        fmt.Printf("mysql 数据库读取 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
+        start = time.Now()
+        for i := 0; i <= count; i++ {
+            pulsarL.Producer(&pulsarL.OutMessage{
+            Topic:      0,
+            TopicStr:   "test",
+            Content:    "太牛了",
+            Properties: map[string]string{"a": "b"},
+            Delay:      0,
+        }, ctx)
+        }
+        fmt.Printf("pulsar 发消息 10000次耗时 %d 毫秒\n", time.Since(start).Milliseconds())
+        // es 相关，更多的用法见测试用例
+        ec, _ := elastic.GetEngine("pubEs", context.Background())
+        e := ec.GetElastic()
+        e.SetTable("admin")
+        ss := e.GetSearchService(context.Background()) //调用这个方法的时候,参数要从外面传过来ctx
+        ss.Cols([]string{"id", "name", "parent_id", "root_id"})
+        ss.WhereIn("id", ss.FieldIntArray([]int{5, 6}))
+        p := make([]TestStt, 0)
+        ss.Rows(&p)
+        fmt.Println(p)
+    }
+*/
 
     ```
     ![测试结果](https://github.com/flyerxp/lib/blob/main/doc/image/test.png?raw=true)
