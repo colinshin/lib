@@ -80,6 +80,11 @@ func (s *SearchSevice) Find(bean interface{}) (error, bool) {
 	return s.searchDo.Find(s, bean)
 }
 
+// 返回查询语句
+func (s *SearchSevice) GetQeuryBody() (string, error) {
+	return s.searchDo.GetRequestBody(s)
+}
+
 // 是否存在 返回 成功标记 是否存在标记
 func (s *SearchSevice) IsExist() (error, bool) {
 	s.clearError()
