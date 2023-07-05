@@ -3,10 +3,15 @@
 简介
 ===
 目前本包支持了nacos,redis,mysql,elastic,pulsar 这些服务中间件，另外集成了常用的yaml,json,md5等工具
+
 协程ants ,这个东西使用简单，未作专门的集成。
+
 pulsar 比kafka更为强大，所以只集成了pulsar,不再集成kafka. 本包的pulsar 采用异步发送,发送耗时可以忽略不不计。
+
 pulsar 第一次创建producer会慢，可以把常用的topic写到pulsar的配置里，提前创建，消息每隔2秒后台发送一次,满100条发送1次,耗时无感知。
+
 app.shutdown() 需要程序推出时调用，会做收尾工作。
+
 elastic 简单易用，不需要很懂es,免去了拼一堆term的烦恼，已经能支持大部分查询场景
 
 使用方法
