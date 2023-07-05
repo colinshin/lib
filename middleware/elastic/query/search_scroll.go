@@ -14,12 +14,12 @@ type ResultScroll struct {
 	Took          int    `json:"took"`
 	Hits          struct {
 		Hits []struct {
-			Index   string  `json:"_index"`
-			Type    string  `json:"_type"`
-			Id      string  `json:"_id"`
-			Score   float32 `json:"_score"`
-			Routing string  `json:"_routing"`
-			Source  json.RawMessage
+			Index   string          `json:"_index"`
+			Type    string          `json:"_type"`
+			Id      string          `json:"_id"`
+			Score   float32         `json:"_score"`
+			Routing string          `json:"_routing"`
+			Source  json.RawMessage `json:"_source"`
 		} `json:"hits"`
 	}
 	IsEnd bool
@@ -36,6 +36,7 @@ func (s *ResultScroll) Next() (error, *ResultScroll) {
 		return io.EOF, new(ResultScroll)
 	}
 	if s.ScrollId == "" {
+		s.searchService.trackTotalHits = 0
 		e, resp := s.searchService.searchDo.BatchSearch(s.searchService)
 		if e == nil {
 			s.ScrollId = resp.ScrollId

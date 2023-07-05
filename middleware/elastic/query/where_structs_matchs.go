@@ -5,7 +5,8 @@ type Matchs struct {
 	Values             string   `json:"value"`                //搜索的词
 	Operator           string   `json:"operator"`             //分词之间的关系
 	MinimumShouldMatch string   `json:"minimum_should_match"` //默认50%
-	Type               string   `json:"type"`
+	Type               string   `json:"type"`                 //类型
+	Fuzziness          string   `json:"fuzziness"`            //模糊性
 }
 
 func (m *Matchs) AddField(f string) *Matchs {
@@ -26,11 +27,17 @@ func (m *Matchs) GetSourceMap() (interface{}, error) {
 				"operator": m.Operator,
 			}},
 		}
+		if m.Fuzziness != "" {
+			r["match"][m.Field[0]]["fuzziness"] = m.Fuzziness
+		}
 		if m.Type == "prefix" {
 			r = map[string]map[string]map[string]string{
 				"match_phrase_prefix": {m.Field[0]: {
 					"query": m.Values,
 				}},
+			}
+			if m.Fuzziness != "" {
+				r["match_phrase_prefix"][m.Field[0]]["fuzziness"] = m.Fuzziness
 			}
 		}
 		if m.Operator == "or" {
@@ -53,6 +60,9 @@ func (m *Matchs) GetSourceMap() (interface{}, error) {
 					"type":   "phrase_prefix",
 				},
 			}
+		}
+		if m.Fuzziness != "" {
+			r["multi_match"]["fuzziness"] = m.Fuzziness
 		}
 		if m.Operator == "or" {
 			r["multi_match"]["minimum_should_match"] = m.MinimumShouldMatch

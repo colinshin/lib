@@ -81,12 +81,14 @@ func (sd *searchDo) getQuery(s *SearchSevice) map[string]interface{} {
 			}
 
 		}
-		tFilter := map[string]interface{}{
-			"bool": map[string][]map[string]map[string][]interface{}{
-				"must": tmpM,
-			},
+		if !(s.where.And == nil || len(s.where.And) == 0) {
+			tFilter := map[string]interface{}{
+				"bool": map[string][]map[string]map[string][]interface{}{
+					"must": tmpM,
+				},
+			}
+			RMatch["filter"] = tFilter
 		}
-		RMatch["filter"] = tFilter
 		return map[string]interface{}{
 			"bool": RMatch,
 		}
@@ -203,18 +205,18 @@ func (sd *searchDo) Rows(s *SearchSevice, bean interface{}) (error, *SearchRows)
 			}
 			tmpRows := make([]json.RawMessage, len(resp.Hits.Hits))
 			tmpOtherSearchInfo := make([]SearchOtherInfo, len(resp.Hits.Hits))
-			for i, tmp := range resp.Hits.Hits {
-				tmpRows[i] = tmp.Source
+			for i := range resp.Hits.Hits {
+				tmpRows[i] = resp.Hits.Hits[i].Source
 				if s.getOtherInfo {
 					tmpOtherSearchInfo[i] = SearchOtherInfo{
-						Score:   &tmp.Score,
-						Id:      tmp.Id,
-						Routing: tmp.Routing,
+						Score:   &resp.Hits.Hits[i].Score,
+						Id:      resp.Hits.Hits[i].Id,
+						Routing: resp.Hits.Hits[i].Routing,
 					}
 				}
 			}
-			jsonStr, _ := decodeTool.EnCode(tmpRows)
-			e = decodeTool.Decode(jsonStr, &bean)
+			jsonStr, _ := json.Marshal(tmpRows)
+			e = json.Unmarshal(jsonStr, &bean)
 			if e != nil {
 				sd.setError(s, e)
 				return e, &SearchRows{resp.TotalHits(), hasmore, []SearchOtherInfo{}}
@@ -352,7 +354,14 @@ func (sd *searchDo) Do(s *SearchSevice) ([]byte, error) {
 	logger.AddEsTime(int(tTime))
 	return r, e
 }
-
+func (sd *searchDo) RequestApi(s *SearchSevice, method string, url string, body string) ([]byte, error) {
+	s.Dsl = body
+	start := time.Now()
+	r, e := s.httpClient.SendRequest(method, url, body, s.timeOut, 0, true)
+	tTime := time.Since(start).Milliseconds()
+	logger.AddEsTime(int(tTime))
+	return r, e
+}
 func (sd *searchDo) ContextF(ctx context.Context) {
 	sd.context = ctx
 }

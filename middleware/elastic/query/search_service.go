@@ -124,6 +124,10 @@ func (s *SearchSevice) Stats(f string) (error, *SearchAggeStats) {
 	s.clearError()
 	return s.searchDo.Stats(s, f)
 }
+func (s *SearchSevice) RequestApi(method string, url string, body string) ([]byte, error) {
+	s.clearError()
+	return s.searchDo.RequestApi(s, method, url, body)
+}
 
 // 汇总方法 返回 SearchResultGroupBy
 func (s *SearchSevice) GroupBy(a *AggeSearch) *SearchSevice {
@@ -157,10 +161,10 @@ func (s *SearchSevice) GetNewWhere() *ConnAnd {
 
 func (s *SearchSevice) Where(f string, v *EsFields) *SearchSevice {
 	if f == s.routing {
-		if v.dataType == "string" {
-			s.routing = f + "_" + v.stringData
+		if v.DataType == "string" {
+			s.routing = f + "_" + v.StringData
 		} else {
-			s.routing = f + "_" + strconv.Itoa(v.intData)
+			s.routing = f + "_" + strconv.Itoa(v.IntData)
 		}
 		e := s.where.Where("_routing", s.FieldString(s.routing))
 		if e != nil {

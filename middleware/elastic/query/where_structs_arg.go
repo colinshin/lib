@@ -1,66 +1,66 @@
 package query
 
 type EsFields struct {
-	dataType        string
-	stringData      string
-	intData         int
-	geoData         FilterGeo
-	stringArrayData []string
-	intArrayData    []int
+	DataType        string
+	StringData      string
+	IntData         int
+	GeoData         FilterGeo
+	StringArrayData []string
+	IntArrayData    []int
 }
 
 func (e *EsFields) setType(v string) {
-	e.dataType = v
+	e.DataType = v
 	return
 }
 func (e *EsFields) SetIntValue(v int) {
-	e.intData = v
+	e.IntData = v
 	return
 }
 func (e *EsFields) SetGeo(v FilterGeo) {
-	e.geoData = v
+	e.GeoData = v
 }
 func (e *EsFields) SetStringValue(v string) {
 
-	e.stringData = v
+	e.StringData = v
 
 }
 func (e *EsFields) SetStringValueForArray(v []string) {
-	e.stringArrayData = v
+	e.StringArrayData = v
 }
 func (e *EsFields) SetIntValueForArray(v []int) {
-	e.intArrayData = v
+	e.IntArrayData = v
 }
 func (e *EsFields) AppendStringValue(v string) {
-	e.stringArrayData = append(e.stringArrayData, v)
+	e.StringArrayData = append(e.StringArrayData, v)
 }
 func (e *EsFields) AppendIntValue(v int) {
-	e.intArrayData = append(e.intArrayData, v)
+	e.IntArrayData = append(e.IntArrayData, v)
 }
 func (e *EsFields) getData() interface{} {
-	switch e.dataType {
+	switch e.DataType {
 	case "int":
-		return e.intData
+		return e.IntData
 	case "string":
-		return e.stringData
+		return e.StringData
 	}
 	return nil
 }
 func (e *EsFields) getGeoData() interface{} {
-	g, _ := e.geoData.GetSourceMap()
+	g, _ := e.GeoData.GetSourceMap()
 	return g
 }
 func (e *EsFields) getArrayData() []interface{} {
-	switch e.dataType {
+	switch e.DataType {
 	case "intArray":
 		r := []interface{}{}
-		for _, t := range e.intArrayData {
+		for _, t := range e.IntArrayData {
 			r = append(r, t)
 		}
 		return r
 	case "stringArray":
 		r := []interface{}{}
-		for _, t := range e.stringArrayData {
+		for _, t := range e.StringArrayData {
 			r = append(r, t)
 		}
 		return r
