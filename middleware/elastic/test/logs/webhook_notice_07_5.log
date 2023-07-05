@@ -1,0 +1,2 @@
+{"level":"INFO","time":"2023-07-05 21:50:43","app":"Webhook","logid":"","execTotalTime":0,"middle":{"elastic":{"total":65,"count":1,"avg":65,"max":65,"ConnTime":0,"ConnCount":0}},"execTime":{},"notice":{}}
+{"level":"INFO","time":"2023-07-05 21:51:02","app":"Webhook","logid":"","execTotalTime":0,"middle":{"elastic":{"total":16,"count":1,"avg":16,"max":16,"ConnTime":0,"ConnCount":0}},"execTime":{},"notice":{}}
